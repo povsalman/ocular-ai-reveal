@@ -2,20 +2,10 @@
 import React from 'react';
 import { CheckCircle, AlertTriangle, Info, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-
-interface AnalysisResult {
-  moduleId: string;
-  moduleName: string;
-  prediction: string;
-  accuracy: number;
-  confidence: number;
-  details?: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  additionalInfo?: string;
-}
+import { AnalysisResult as AnalysisResultType } from '@/types/analysis';
 
 interface AnalysisResultProps {
-  result: AnalysisResult;
+  result: AnalysisResultType;
 }
 
 const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
@@ -38,7 +28,7 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
   };
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in space-y-6">
       <Card className="gradient-result medical-shadow medical-border">
         <CardContent className="p-6">
           <div className="space-y-6">
@@ -117,6 +107,31 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Segmentation Mask Display */}
+      {result.maskImage && (
+        <Card className="gradient-result medical-shadow medical-border">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-800 text-center">
+                Segmentation Result
+              </h4>
+              <div className="flex justify-center">
+                <div className="relative rounded-lg overflow-hidden medical-shadow">
+                  <img
+                    src={result.maskImage}
+                    alt="Segmentation mask"
+                    className="w-full max-w-md h-auto"
+                  />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 text-center">
+                AI-generated segmentation mask showing the detected regions of interest
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
