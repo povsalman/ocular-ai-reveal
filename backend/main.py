@@ -4,11 +4,9 @@ from fastapi.responses import JSONResponse
 import base64
 import io
 from PIL import Image
-import torch
-import torch.nn.functional as F
+import numpy as np
 from typing import Optional, Dict, Any
 import logging
-import numpy as np
 
 # Import model modules
 from models.dr_model import DRModel
@@ -58,7 +56,7 @@ async def load_models():
         logger.error(f"Error loading models: {e}")
         raise e
 
-def preprocess_image(image_file: UploadFile) -> torch.Tensor:
+def preprocess_image(image_file: UploadFile) -> np.ndarray:
     """Preprocess uploaded image for model inference"""
     try:
         # Read image
@@ -69,22 +67,30 @@ def preprocess_image(image_file: UploadFile) -> torch.Tensor:
         if image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # Convert to tensor and normalize
-        image_tensor = torch.from_numpy(np.array(image)).float()
-        image_tensor = image_tensor.permute(2, 0, 1) / 255.0  # HWC to CHW and normalize
+        # Convert to numpy array
+        image_array = np.array(image)
         
-        return image_tensor
+        return image_array
         
     except Exception as e:
         logger.error(f"Error preprocessing image: {e}")
         raise HTTPException(status_code=400, detail="Invalid image format")
 
-def encode_mask_to_base64(mask: torch.Tensor) -> str:
+def encode_mask_to_base64(mask: np.ndarray) -> str:
     """Convert segmentation mask to base64 encoded PNG"""
     try:
-        # Convert tensor to PIL Image
-        mask_np = mask.cpu().numpy()
-        mask_image = Image.fromarray((mask_np * 255).astype(np.uint8))
+        # Ensure mask is in the right format
+        if len(mask.shape) == 3:
+            mask = mask.squeeze()  # Remove extra dimensions
+        
+        # Normalize mask to 0-255 range
+        if mask.max() <= 1.0:
+            mask = (mask * 255).astype(np.uint8)
+        else:
+            mask = mask.astype(np.uint8)
+        
+        # Convert to PIL Image
+        mask_image = Image.fromarray(mask, mode='L')  # Grayscale mode
         
         # Convert to base64
         buffer = io.BytesIO()
@@ -135,17 +141,26 @@ async def predict(
             )
         
         # Preprocess image
-        image_tensor = preprocess_image(file)
+        image_array = preprocess_image(file)
         
         # Run inference
-        result = model.predict(image_tensor)
+        result = model.predict(image_array)
         
         # Prepare response
         response = {
+            "status": result.get("status", "success"),
             "predicted_class": result["predicted_class"],
             "confidence": result["confidence"],
             "model_type": model_type
         }
+        
+        # Add dataset information for vessel segmentation
+        if model_type == 'vessel' and "dataset_used" in result:
+            response["dataset_used"] = result["dataset_used"]
+        
+        # Add metrics for vessel segmentation
+        if model_type == 'vessel' and "metrics" in result:
+            response["metrics"] = result["metrics"]
         
         # Add mask image for segmentation models
         if model_type in ['vessel', 'glaucoma'] and "mask" in result:

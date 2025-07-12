@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Brain } from 'lucide-react';
+import { Brain, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import ModuleLayout from '@/components/ModuleLayout';
 import ModuleAnalysis from '@/components/ModuleAnalysis';
 import { AnalysisResult } from '@/types/analysis';
@@ -43,22 +43,22 @@ const VesselSegmentation = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">About Vessel Segmentation</h2>
           <div className="space-y-4 text-gray-600">
             <p>
-              Retinal vessel segmentation is crucial for diagnosing various eye diseases. Our R2UNet-based model provides 
-              accurate pixel-level segmentation of blood vessels in retinal fundus images.
+              Retinal vessel segmentation is crucial for diagnosing various eye diseases. Our multi-dataset R2UNet-based model provides 
+              accurate pixel-level segmentation of blood vessels in retinal fundus images using the best performing model from DRIVE, CHASEDB1, HRF, and STARE datasets.
             </p>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">R2UNet Architecture</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Multi-Dataset R2UNet Architecture</h3>
                 <p className="text-sm">
                   R2UNet combines the power of U-Net with recurrent and residual connections, providing superior 
-                  segmentation performance for thin vessel structures.
+                  segmentation performance for thin vessel structures across multiple datasets.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Training Method</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">Intelligent Model Selection</h3>
                 <p className="text-sm">
-                  Trained on multiple public datasets (DRIVE, STARE, CHASE_DB1) with data augmentation techniques 
-                  and expert annotations for ground truth validation.
+                  The system automatically selects the best performing model based on Dice Coefficient, with Sensitivity and Specificity as tie-breakers, 
+                  ensuring optimal results for each input image.
                 </p>
               </div>
             </div>

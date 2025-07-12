@@ -1,89 +1,105 @@
 # AI Healthcare Backend
 
-A FastAPI-based backend for AI-powered retinal image analysis with 5 different deep learning models.
+This is the FastAPI backend for the AI Healthcare application, providing endpoints for various retinal image analysis models.
 
-## 🚀 Features
+## Features
 
-- **5 AI Models**: DR Classification, Vessel Segmentation, Age Prediction, Myopia Detection, and Glaucoma Detection
-- **FastAPI**: Modern, fast web framework with automatic API documentation
-- **CORS Support**: Full CORS enabled for frontend integration
-- **Image Processing**: Support for multipart/form-data image uploads
-- **Segmentation Masks**: Base64-encoded PNG masks for vessel and glaucoma models
-- **Swagger Docs**: Automatic API documentation at `/docs`
+- **Vessel Segmentation**: Multi-dataset R2U-Net model for retinal blood vessel segmentation
+- **DR Classification**: Diabetic retinopathy classification
+- **Glaucoma Detection**: Glaucoma detection model
+- **Age Prediction**: Retinal age prediction
+- **Myopia Detection**: Myopia detection model
 
-## 📁 Project Structure
+## Setup
 
+### Prerequisites
+
+- Python 3.8+
+- pip or conda
+
+### Installation
+
+1. **Create and activate virtual environment**:
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 ```
-backend/
-├── main.py                 # FastAPI application entry point
-├── requirements.txt        # Python dependencies
-├── models/                 # AI model implementations
-│   ├── dr_model.py        # Diabetic Retinopathy Classification
-│   ├── vessel_model.py    # Vessel Segmentation
-│   ├── age_model.py       # Age Prediction
-│   ├── myopia_model.py    # Myopia Detection
-│   └── glaucoma_model.py  # Glaucoma Detection & Segmentation
-├── utils/                  # Utility functions
-├── saved_models/          # Pre-trained model weights (not included)
-└── README.md              # This file
-```
-
-## 🛠 Installation
-
-1. **Create virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
 
 2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
 
-## 🚀 Running the Server
-
-### Development Mode
 ```bash
+pip install -r requirements.txt
+```
+
+3. **Ensure the model files are in the correct location**:
+   - `python/Vessel Segmentation/models/` contains 12 model files:
+     - `r2unet_DRIVE_checkpoint_dice.keras` (preferred)
+     - `r2unet_DRIVE_checkpoint.weights.h5` (fallback)
+     - `r2unet_DRIVE_final.keras` (fallback)
+     - Similar files for CHASEDB1, HRF, and STARE datasets
+
+### Running the Backend
+
+1. **Start the FastAPI server**:
+
+```bash
+# Development mode with auto-reload
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Or run directly
 python main.py
 ```
 
-### Production Mode
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
+2. The server will start on `http://localhost:8000`
 
-The server will start at `http://localhost:8000`
+3. API documentation will be available at `http://localhost:8000/docs`
 
-## 📚 API Documentation
+## API Endpoints
 
-Once the server is running, visit:
-- **Swagger UI**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
+### POST /predict/
 
-## 🔌 API Endpoints
+Predict using the specified model.
 
-### POST `/predict/`
-Main prediction endpoint for all models.
+**Parameters:**
 
-**Parameters**:
-- `file`: Image file (multipart/form-data)
-- `model_type`: String - one of `dr`, `vessel`, `age`, `myopia`, `glaucoma`
+- `file`: Uploaded retinal fundus image
+- `model_type`: One of 'dr', 'vessel', 'age', 'myopia', 'glaucoma'
 
-**Response**:
+**Response:**
+
 ```json
 {
-  "predicted_class": "string",
-  "confidence": 0.95,
-  "model_type": "dr",
-  "mask_image": "base64_string"  // Only for vessel and glaucoma models
+  "status": "success",
+  "predicted_class": "Vessels Detected",
+  "confidence": 0.85,
+  "model_type": "vessel",
+  "dataset_used": "DRIVE",
+  "metrics": {
+    "dice_coefficient": 0.77,
+    "sensitivity": 0.77,
+    "specificity": 0.98,
+    "f1_score": 0.76,
+    "accuracy": 0.95,
+    "jaccard_similarity": 0.62,
+    "auc": 0.88
+  },
+  "mask_image": "base64_encoded_png_image"
 }
 ```
 
-### GET `/health`
+### GET /health
+
 Health check endpoint.
 
-**Response**:
+**Response:**
+
 ```json
 {
   "status": "healthy",
@@ -91,97 +107,128 @@ Health check endpoint.
 }
 ```
 
-### GET `/`
+### GET /
+
 Root endpoint with API information.
 
-## 🤖 AI Models
+**Response:**
 
-### 1. DR Classification (`dr`)
-- **Purpose**: Detect and classify diabetic retinopathy stages
-- **Classes**: No DR, Mild NPDR, Moderate NPDR, Severe NPDR, Proliferative DR
-- **Architecture**: Custom CNN with 5 output classes
+```json
+{
+  "message": "AI Healthcare Backend API",
+  "version": "1.0.0",
+  "available_models": ["dr", "vessel", "age", "myopia", "glaucoma"],
+  "docs": "/docs"
+}
+```
 
-### 2. Vessel Segmentation (`vessel`)
-- **Purpose**: Segment blood vessels in retinal images
-- **Output**: Binary segmentation mask + vessel density
-- **Architecture**: U-Net with skip connections
+## Testing
 
-### 3. Age Prediction (`age`)
-- **Purpose**: Predict age group from retinal images
-- **Classes**: 20-30, 31-40, 41-50, 51-60, 60+ years
-- **Architecture**: CNN with age group classification
+Run the test script to verify the vessel segmentation model:
 
-### 4. Myopia Detection (`myopia`)
-- **Purpose**: Detect myopia presence and severity
-- **Classes**: No Myopia, Myopia Detected
-- **Architecture**: CNN with severity assessment
+```bash
+python test_vessel.py
+```
 
-### 5. Glaucoma Detection (`glaucoma`)
-- **Purpose**: Detect glaucoma and segment optic disc
-- **Classes**: No Glaucoma, Glaucoma Detected
-- **Architecture**: U-Net with classification head
+## Model Architecture
 
-## 🔧 Model Details
+### Vessel Segmentation (Multi-Dataset R2U-Net)
 
-All models:
-- Run on CPU (can be modified for GPU)
-- Use PyTorch framework
-- Include fallback predictions for error handling
-- Support standard image formats (PNG, JPG, JPEG)
-- Normalize images using ImageNet statistics
+The vessel segmentation system uses multiple R2U-Net models trained on different datasets:
 
-## 🌐 CORS Configuration
+- **Architecture**: R2U-Net with t=3 (1 forward convolution + 3 recurrent convolutions)
+- **Input**: 48x48 patches from retinal fundus images
+- **Output**: Binary segmentation mask
+- **Training**: Trained on DRIVE, CHASEDB1, HRF, and STARE datasets
+- **Preprocessing**: Green channel extraction with CLAHE enhancement
+- **Selection**: Best prediction selected based on Dice Coefficient (DC), with Sensitivity (SE) and Specificity (SP) as tie-breakers
 
-The backend is configured with full CORS support:
+### Model Files
+
+The system expects the following files in `python/Vessel Segmentation/models/`:
+
+**DRIVE Dataset:**
+
+1. `r2unet_DRIVE_checkpoint_dice.keras` (preferred) - Best model based on Dice coefficient
+2. `r2unet_DRIVE_checkpoint.weights.h5` (fallback) - Weights-only checkpoint
+3. `r2unet_DRIVE_final.keras` (fallback) - Final training model
+
+**CHASEDB1 Dataset:**
+
+1. `r2unet_CHASEDB1_checkpoint_dice.keras` (preferred)
+2. `r2unet_CHASEDB1_checkpoint.weights.h5` (fallback)
+3. `r2unet_CHASEDB1_final.keras` (fallback)
+
+**HRF Dataset:**
+
+1. `r2unet_HRF_checkpoint_dice.keras` (preferred)
+2. `r2unet_HRF_checkpoint.weights.h5` (fallback)
+3. `r2unet_HRF_final.keras` (fallback)
+
+**STARE Dataset:**
+
+1. `r2unet_STARE_checkpoint_dice.keras` (preferred)
+2. `r2unet_STARE_checkpoint.weights.h5` (fallback)
+3. `r2unet_STARE_final.keras` (fallback)
+
+## CORS Configuration
+
+The backend is configured to allow CORS from any origin for development. In production, you should specify your frontend URL:
+
 ```python
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=["http://localhost:3000"],  # Your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 ```
 
-## 🔒 Security Notes
+## Error Handling
 
-- CORS is set to allow all origins (`*`) for development
-- In production, specify your frontend URL
-- No authentication implemented (add as needed)
-- Input validation for file types and model types
+The backend includes comprehensive error handling with status codes:
 
-## 🐛 Error Handling
+- **success**: Prediction completed successfully
+- **model_not_loaded**: One or more models failed to load
+- **prediction_failed**: Model inference failed
+- **invalid_input**: Invalid file or parameters
+- **no_models_available**: No models are available for inference
 
-The API includes comprehensive error handling:
-- Invalid model types return 400 error
-- Invalid file types return 400 error
-- Model loading errors return 500 error
-- Fallback predictions for model inference errors
+All errors return appropriate HTTP status codes and descriptive error messages.
 
-## 📊 Performance
+## Development
 
-- Models are loaded once at startup
-- Inference runs on CPU (modify for GPU acceleration)
-- Image preprocessing optimized for each model
-- Base64 encoding for segmentation masks
+### Adding New Models
 
-## 🔄 Integration with Frontend
+1. Create a new model class in `models/`
+2. Implement the `predict()` method
+3. Add the model to the startup loading in `main.py`
+4. Update the API documentation
 
-The backend is designed to work with the React frontend:
-- Accepts multipart/form-data uploads
-- Returns JSON responses
-- Includes CORS headers
-- Provides segmentation masks as base64 strings
+### Testing
 
-## 🚀 Deployment
+- Use the provided test scripts
+- Test with various image formats and sizes
+- Verify mask encoding works correctly
+- Check CORS configuration with frontend
 
-For production deployment:
-1. Set up proper CORS origins
-2. Add authentication if needed
-3. Use a production WSGI server (Gunicorn)
-4. Configure proper logging
-5. Add model weight files to `saved_models/`
+## Troubleshooting
 
-## 📝 License
+### Common Issues
 
-This project is part of the AI Healthcare application. 
+1. **Model not loading**: Check that the model files exist in the correct location
+2. **Import errors**: Ensure all dependencies are installed in the virtual environment
+3. **Memory issues**: The models are loaded on startup and kept in memory
+4. **CORS errors**: Check the CORS configuration for your frontend URL
+5. **Virtual environment not activated**: Make sure to activate the virtual environment before running
+
+### Logs
+
+The backend uses Python logging. Check the console output for detailed error messages and model loading status.
+
+### Performance
+
+- Models are loaded once at startup for optimal performance
+- Inference runs on CPU (can be modified for GPU acceleration)
+- Multi-model prediction may take longer but provides better results
