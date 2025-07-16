@@ -10,6 +10,7 @@ import { AnalysisResult as AnalysisResultType } from '@/types/analysis';
 interface ModuleAnalysisProps {
   moduleId: string;
   moduleName: string;
+  generateMockResult: (moduleId: string) => AnalysisResultType;
 }
 
 interface APIMetrics {
@@ -34,7 +35,8 @@ interface APIResponse {
 
 const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
   moduleId,
-  moduleName
+  moduleName,
+  generateMockResult
 }) => {
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -125,30 +127,43 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         moduleId: moduleId,
         moduleName: moduleName,
         prediction: apiResult.predicted_class,
+        accuracy: apiResult.metrics?.accuracy || 0,
         confidence: apiResult.confidence * 100, // Convert to percentage
         details: `Dataset: ${apiResult.dataset_used || 'Unknown'}`,
+        riskLevel: mapRiskLevel(apiResult.confidence * 100),
         maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
         additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
+        // Add metrics for display
         metrics: apiResult.metrics
       };
 
       setAnalysisResult(result);
 
       // Show warning for low confidence
-      toast({
-        title: "Prediction complete",
-        description: "Review metrics and mask below."
-      });
+      if (apiResult.metrics?.dice_coefficient && apiResult.metrics.dice_coefficient < 0.4) {
+        toast({
+          title: "Low Confidence Warning",
+          description: "The model's prediction confidence is low. Please consider consulting a medical expert.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Analysis Complete",
+          description: `${moduleName} analysis finished successfully.`
+        });
+      }
 
     } catch (error) {
       console.error('Analysis error:', error);
       
+      // Fallback to mock result if API fails
+      const mockResult = generateMockResult(moduleId);
+      setAnalysisResult(mockResult);
+      
       toast({
-        title: "Analysis Error",
-        description: `Failed to analyze image. Please try again later or check backend logs.`,
-        variant: "destructive"
+        title: "Analysis Complete (Mock)",
+        description: `${moduleName} analysis completed using mock data due to API error.`
       });
-      setAnalysisResult(null);
     } finally {
       setIsAnalyzing(false);
     }
@@ -306,7 +321,7 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                   </p>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Model Used</p>
+                  <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
                   <p className="text-lg font-bold text-gray-600">
                     {analysisResult.details.split(': ')[1] || 'Unknown'}
                   </p>
@@ -315,6 +330,16 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
             )}
 
             {/* Warning for low confidence */}
+            {analysisResult.metrics?.dice_coefficient && analysisResult.metrics.dice_coefficient < 0.4 && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  <span className="text-yellow-800 font-medium">
+                    ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
