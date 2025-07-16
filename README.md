@@ -1,4 +1,4 @@
-# Ocular AI Reveal - Retinal Fundus Analysis Platform
+# Ocular AI Reveal - Retinal Fundus Analysis Platform!
 
 A comprehensive web application for AI-powered retinal fundus image analysis, featuring multiple deep learning models for various ophthalmological assessments.
 
