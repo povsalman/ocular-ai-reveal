@@ -56,7 +56,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <img
             src={selectedImage}
             alt="Selected retinal fundus"
-            className="w-full h-80 object-cover"
+            className="w-full max-h-80 max-w-full object-contain bg-white"
           />
           {isAnalyzing && (
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">

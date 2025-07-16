@@ -31,6 +31,7 @@ interface APIResponse {
   dataset_used?: string;
   metrics?: APIMetrics;
   mask_image?: string;
+  features?: Record<string, number | string>;
 }
 
 const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
@@ -134,7 +135,8 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
         additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
         // Add metrics for display
-        metrics: apiResult.metrics
+        metrics: apiResult.metrics,
+        features: apiResult.features || undefined,
       };
 
       setAnalysisResult(result);
@@ -226,29 +228,59 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               )}
             </div>
 
-            {/* Segmentation Mask */}
-            <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
-              {analysisResult.maskImage ? (
-                <div className="flex justify-center">
-                  <img 
-                    src={analysisResult.maskImage} 
-                    alt="Vessel segmentation mask" 
-                    className="max-w-full max-h-96 object-contain rounded-lg"
-                    style={{ 
-                      aspectRatio: 'auto',
-                      width: 'auto',
-                      height: 'auto'
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <XCircle className="h-12 w-12 text-gray-400" />
-                  <span className="ml-2 text-gray-500">No mask available</span>
-                </div>
-              )}
-            </div>
+            {/* Segmentation Mask or Key Features */}
+            {moduleId === 'myopia_detection' ? (
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Key features</h3>
+                {analysisResult.features && Object.keys(analysisResult.features).length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr>
+                          <th className="text-left pr-4 pb-1 text-green-800">Feature</th>
+                          <th className="text-left pb-1 text-green-800">Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(analysisResult.features)
+                          .filter(([key]) => key !== 'min_vessel_width' && key !== 'branch_density')
+                          .map(([key, value]) => (
+                            <tr key={key}>
+                              <td className="pr-4 py-1 text-green-900 font-medium">{key}</td>
+                              <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(4) : value}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-gray-500">No features extracted.</div>
+                )}
+              </div>
+            ) : (
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
+                {analysisResult.maskImage ? (
+                  <div className="flex justify-center">
+                    <img 
+                      src={analysisResult.maskImage} 
+                      alt="Vessel segmentation mask" 
+                      className="max-w-full max-h-96 object-contain rounded-lg"
+                      style={{ 
+                        aspectRatio: 'auto',
+                        width: 'auto',
+                        height: 'auto'
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <XCircle className="h-12 w-12 text-gray-400" />
+                    <span className="ml-2 text-gray-500">No mask available</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Metrics Section */}

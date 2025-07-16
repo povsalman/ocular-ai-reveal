@@ -153,19 +153,18 @@ async def predict(
             "confidence": result["confidence"],
             "model_type": model_type
         }
-        
+        # Add features for myopia if present
+        if model_type == 'myopia' and "features" in result:
+            response["features"] = result["features"]
         # Add dataset information for vessel segmentation
         if model_type == 'vessel' and "dataset_used" in result:
             response["dataset_used"] = result["dataset_used"]
-        
         # Add metrics for vessel segmentation
         if model_type == 'vessel' and "metrics" in result:
             response["metrics"] = result["metrics"]
-        
         # Add mask image for segmentation models
         if model_type in ['vessel', 'glaucoma'] and "mask" in result:
             response["mask_image"] = encode_mask_to_base64(result["mask"])
-        
         return JSONResponse(content=response)
         
     except Exception as e:
