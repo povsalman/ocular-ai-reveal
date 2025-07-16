@@ -250,6 +250,124 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **UI Framework**: Built with React, TypeScript, and Tailwind CSS
 - **Backend**: FastAPI for high-performance API development
 
+---
+
+##  Diabetic Retinopathy (DR) Classification
+
+The **DR Classification** module uses two state-of-the-art deep learning models — **DenseNet** and a **Vision Transformer (ViT)** — to classify the severity of diabetic retinopathy from retinal fundus images.
+
+###  Folder Structure & Setup
+
+Due to GitHub's file size restrictions, model files are not included in the repository.
+
+To enable DR classification:
+
+1. **Download the model files** from the following Google Drive folder:
+   📎 **[Download DR Models](https://drive.google.com/drive/folder/your-model-folder-link)**
+
+2. **Place the models** in the following directory structure inside your backend:
+
+```
+backend/
+└── models/
+    └── dr_models/
+        ├── denseNet.h5              # TensorFlow/Keras DenseNet model
+        └── vit.pth                  # PyTorch Vision Transformer model
+```
+
+>  The folder must be named `dr_models` exactly and placed under `backend/models/`.
+
+---
+
+###  How It Works
+
+* The system takes a **retinal fundus image** as input.
+* Both models make predictions independently.
+* The prediction with the **higher confidence score** is selected as the final result.
+* A **Grad-CAM heatmap** is generated to visually explain which regions of the retina influenced the prediction.
+
+---
+
+###  DR Classification Stages
+
+| Stage                | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| **No DR**            | No signs of diabetic retinopathy were detected.                                     |
+| **Mild NPDR**        | Microaneurysms are present. Regular monitoring is recommended.                      |
+| **Moderate NPDR**    | Blood vessel damage is visible. Closer monitoring and treatment may be needed.      |
+| **Severe NPDR**      | Extensive damage and blocked vessels are present. Urgent care may be required.      |
+| **Proliferative DR** | Abnormal blood vessel growth is observed. Immediate medical attention is necessary. |
+
+---
+
+###  Grad-CAM Explanation
+
+The Grad-CAM visualization highlights the regions of the retinal image that contributed most to the model's decision:
+
+* 🔴 **Bright red/yellow regions**: High attention areas
+* 🔵 **Cooler or dark regions**: Low attention areas
+
+This helps users and practitioners understand why a certain prediction was made.
+
+---
+
+###  Example Workflow
+
+1. Navigate to `http://localhost:3000`
+2. Click on **"DR Classification"**
+3. Upload a **retinal fundus image**
+4. Click **"Start Analysis"**
+5. View:
+
+   * Predicted **DR stage**
+   * **Confidence score** of the prediction
+   * Model used (DenseNet or ViT)
+   * **Grad-CAM heatmap** for model interpretability
+   * Textual explanation for the predicted DR stage
+
+---
+
+### 🔍 API Support for DR Classification
+
+#### POST `/predict/`
+
+* `file`: Image file
+* `model_type`: `"dr"`
+
+**Response Format:**
+
+```json
+{
+  "status": "success",
+  "predicted_class": "Moderate NPDR",
+  "confidence": 0.91,
+  "model_used": "ViT",
+  "gradcam_image": "<base64_encoded_image>"
+}
+```
+
+---
+
+###  Model Details
+
+| Model                    | Framework        | Type              | Description                                       |
+| ------------------------ | ---------------- | ----------------- | ------------------------------------------------- |
+| DenseNet                 | TensorFlow/Keras | Convolutional     | Lightweight, high-accuracy CNN for classification |
+| Vision Transformer (ViT) | PyTorch          | Transformer-based | Excels in capturing global image context          |
+
+---
+
+###  Expected Results
+
+* For clear fundus images, confidence scores ≥ 80% are expected.
+* For low-quality or blurry images, confidence may drop and users may be shown a warning.
+* Grad-CAM is available for most successful predictions to improve interpretability.
+
+---
+
+If you'd like me to **replace the dummy Google Drive link** with your actual model link, just share it and I’ll plug it in. Let me know if you want the DR module to have its own metrics section or CLI tools too.
+
+
 ## 📞 Support
 
 For support, please open an issue on GitHub or contact the development team.
