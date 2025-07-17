@@ -2,7 +2,7 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import ModuleLayout from '@/components/ModuleLayout';
-import ModuleAnalysis from '@/components/ModuleAnalysis';
+import ModuleAnalysisMyopia from '@/components/ModuleAnalysisMyopia';
 import { AnalysisResult } from '@/types/analysis';
 
 const generateFeatureSummary = (features?: Record<string, number | string>): string => {
@@ -119,7 +119,7 @@ const MyopiaDetection = () => {
         </div>
 
         {/* Analysis Section */}
-        <ModuleAnalysis
+        <ModuleAnalysisMyopia
           moduleId="myopia_detection"
           moduleName="Myopia Detection"
           generateMockResult={generateMockResult}
