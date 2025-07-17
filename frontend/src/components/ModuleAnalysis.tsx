@@ -6,6 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisResult from '@/components/AnalysisResult';
 import { AnalysisResult as AnalysisResultType } from '@/types/analysis';
+import ReactMarkdown from 'react-markdown';
+import { generateFeatureSummary } from '@/pages/MyopiaDetection';
+import { ChartContainer } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, ReferenceLine, LineChart, Line, CartesianGrid } from 'recharts';
 
 interface ModuleAnalysisProps {
   moduleId: string;
@@ -124,6 +128,12 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
       }
 
       // Convert API response to AnalysisResult format
+      let additionalInfo = undefined;
+      if (moduleId === 'myopia_detection') {
+        additionalInfo = generateFeatureSummary(apiResult.features || {}) + '\n\nMyopia detection from retinal images focuses on identifying structural changes associated with myopic progression. Our model analyzes optic disc characteristics, peripapillary atrophy, and posterior pole changes to assess myopia risk and severity.';
+      } else if (moduleId === 'vessel_segmentation') {
+        additionalInfo = 'Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.';
+      }
       const result: AnalysisResultType = {
         moduleId: moduleId,
         moduleName: moduleName,
@@ -133,7 +143,7 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         details: `Dataset: ${apiResult.dataset_used || 'Unknown'}`,
         riskLevel: mapRiskLevel(apiResult.confidence * 100),
         maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
-        additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
+        additionalInfo,
         // Add metrics for display
         metrics: apiResult.metrics,
         features: apiResult.features || undefined,
@@ -209,31 +219,14 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         <div className="space-y-6">
           {/* Two-column layout for image and mask */}
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Original Image */}
-            <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Original Image</h3>
-              {selectedImage && (
-                <div className="flex justify-center">
-                  <img 
-                    src={selectedImage} 
-                    alt="Uploaded retinal image" 
-                    className="max-w-full max-h-96 object-contain rounded-lg"
-                    style={{ 
-                      aspectRatio: 'auto',
-                      width: 'auto',
-                      height: 'auto'
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
             {/* Segmentation Mask or Key Features */}
             {moduleId === 'myopia_detection' ? (
               <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">Key features</h3>
+                <h3 className="text-lg font-bold mb-4 text-center w-full" style={{ color: '#38BDF8' }}>
+                  Key Features
+                </h3>
                 {analysisResult.features && Object.keys(analysisResult.features).length > 0 ? (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto mb-6">
                     <table className="min-w-full text-sm">
                       <thead>
                         <tr>
@@ -254,7 +247,16 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                     </table>
                   </div>
                 ) : (
-                  <div className="text-gray-500">No features extracted.</div>
+                  <div className="text-gray-500 mb-6">No features extracted.</div>
+                )}
+                {/* Clinical Summary Section */}
+                {analysisResult.additionalInfo && (
+                  <div className="mt-4 p-4 bg-white/40 rounded-lg border border-white/30">
+                    <h4 className="font-medium text-gray-800 mb-2">Clinical Summary</h4>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      <ReactMarkdown>{analysisResult.additionalInfo}</ReactMarkdown>
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (
@@ -279,6 +281,90 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                     <span className="ml-2 text-gray-500">No mask available</span>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Feature Charts for Myopia Detection */}
+            {moduleId === 'myopia_detection' && analysisResult?.features && Object.keys(analysisResult.features).length > 0 && (
+              <div className="w-full mt-8">
+                <div className="gradient-card rounded-xl p-6 medical-shadow medical-border w-full flex flex-col gap-8 items-center" style={{ minHeight: '480px', width: '100%' }}>
+                  <h3 className="text-2xl font-bold mb-4 text-center w-full" style={{ color: '#38BDF8' }}>Image Insights</h3>
+                  {/* Original Image below heading */}
+                  <div className="w-full">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">Original Image</h3>
+                    {selectedImage && (
+                      <div className="flex justify-center">
+                        <img 
+                          src={selectedImage} 
+                          alt="Uploaded retinal image" 
+                          className="max-w-full max-h-96 object-contain rounded-lg"
+                          style={{ aspectRatio: 'auto', width: 'auto', height: 'auto' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {/* 1. Vessel Width Distribution */}
+                  <div className="w-full">
+                    <h4 className="text-md font-semibold text-gray-700 mb-2 text-center">Vessel Width Metrics</h4>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <BarChart
+                        data={[
+                          { name: 'Avg Width', value: analysisResult.features.avg_vessel_width },
+                          { name: 'Max Width', value: analysisResult.features.max_vessel_width },
+                          { name: 'Std Dev', value: analysisResult.features.vessel_width_std },
+                        ].filter(d => d.value !== undefined)}
+                        margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                      >
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#4F8A8B">
+                          <LabelList dataKey="value" position="top" formatter={(v) => v?.toFixed ? v.toFixed(2) : v} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* 2. Optic Disc Metrics */}
+                  <div className="w-full">
+                    <h4 className="text-md font-semibold text-gray-700 mb-2 text-center">Optic Disc Metrics</h4>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <BarChart
+                        data={[
+                          { name: 'Area Ratio', value: analysisResult.features.optic_disc_area_ratio },
+                          { name: 'Circularity', value: analysisResult.features.disc_circularity },
+                        ].filter(d => d.value !== undefined)}
+                        margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                      >
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#F9B572">
+                          <LabelList dataKey="value" position="top" formatter={(v) => v?.toFixed ? v.toFixed(2) : v} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* 3. Cup-to-Disc Ratio Line Graph */}
+                  <div className="w-full">
+                    <h4 className="text-md font-semibold text-gray-700 mb-2 text-center">Cup-to-Disc Ratio (Line Graph)</h4>
+                    <ResponsiveContainer width="100%" height={120}>
+                      <LineChart
+                        data={[
+                          { name: 'Reference', value: 0.5 },
+                          { name: 'Cup-to-Disc', value: analysisResult.features.cup_to_disc_ratio },
+                        ].filter(d => d.value !== undefined)}
+                        margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                      >
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis domain={[0, 1]} tick={{ fontSize: 12 }} />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="value" stroke="#A259FF" strokeWidth={3} dot={{ r: 6 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <div className="text-xs text-gray-500 text-center mt-1">Reference value is 0.5 (risk threshold).</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

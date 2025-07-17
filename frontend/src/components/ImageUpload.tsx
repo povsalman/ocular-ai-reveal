@@ -51,21 +51,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   if (selectedImage) {
     return (
-      <div className="relative group">
-        <div className="relative overflow-hidden rounded-xl medical-shadow medical-border">
-          <img
-            src={selectedImage}
-            alt="Selected retinal fundus"
-            className="w-full max-h-80 max-w-full object-contain bg-white"
-          />
-          {isAnalyzing && (
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-              <div className="bg-white/90 rounded-lg px-4 py-2 flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                <span className="text-sm font-medium">Analyzing...</span>
-              </div>
-            </div>
-          )}
+      <div className="relative group flex flex-col items-center justify-center min-h-[180px]">
+        <div className="flex flex-col items-center justify-center w-full h-full py-8">
+          <div className="flex items-center justify-center mb-2">
+            <svg className="h-10 w-10 text-green-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#d1fae5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l2.5 2.5L16 9" stroke="#22c55e" strokeWidth="2.5" />
+            </svg>
+          </div>
+          <div className="text-green-600 text-lg font-semibold animate-pulse">Image submitted</div>
         </div>
         <Button
           onClick={onRemoveImage}

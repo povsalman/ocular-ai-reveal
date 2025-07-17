@@ -3,6 +3,7 @@ import React from 'react';
 import { CheckCircle, AlertTriangle, Info, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AnalysisResult as AnalysisResultType } from '@/types/analysis';
+import ReactMarkdown from 'react-markdown';
 
 interface AnalysisResultProps {
   result: AnalysisResultType;
@@ -89,9 +90,9 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
                     <h4 className="font-medium text-gray-800 mb-1">
                       Clinical Notes
                     </h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {result.additionalInfo}
-                    </p>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      <ReactMarkdown>{result.additionalInfo}</ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </div>
