@@ -1,101 +1,129 @@
+# backend/models/dr_model.py
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-from PIL import Image
 import numpy as np
-import logging
-from typing import Dict, Any
+import tensorflow as tf
+from PIL import Image
+from torchvision import transforms
+from torchvision.models import vit_b_16
+import torch.nn as nn
+from utils.preprocessing_dr import preprocess_image
+from pathlib import Path
+from utils.gradcam_dr import generate_gradcam
+from utils.gradcam_densenet_dr import generate_gradcam_densenet
 
-logger = logging.getLogger(__name__)
+import cv2
+from io import BytesIO
+import base64
 
-class DRNet(nn.Module):
-    """Simple CNN for DR Classification"""
-    def __init__(self, num_classes=5):
-        super(DRNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.dropout = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(128 * 8 * 8, 512)
-        self.fc2 = nn.Linear(512, num_classes)
-        
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = self.pool(F.relu(self.conv3(x)))
-        x = x.view(x.size(0), -1)
-        x = self.dropout(F.relu(self.fc1(x)))
-        x = self.fc2(x)
-        return x
+MODEL_DIR = Path(__file__).resolve().parent / "dr_models"
 
 class DRModel:
-    """DR Classification Model Wrapper"""
-    
     def __init__(self):
-        self.model = DRNet()
-        self.device = torch.device('cpu')
-        self.model.to(self.device)
-        self.model.eval()
-        
-        # DR classes
-        self.classes = [
-            'No DR',
-            'Mild NPDR', 
-            'Moderate NPDR',
-            'Severe NPDR',
-            'Proliferative DR'
-        ]
-        
-        # Preprocessing transforms
+        self.device = torch.device("cpu")
+
+        # Load PyTorch ViT model with custom head
+        self.torch_model = vit_b_16(weights=None)
+        self.torch_model.heads = nn.Linear(in_features=768, out_features=5)
+        state_dict = torch.load(MODEL_DIR / "vit.pth", map_location=self.device)
+        self.torch_model.load_state_dict(state_dict)
+        self.torch_model.to(self.device)
+        self.torch_model.eval()
+
+        # Load Keras model
+        self.keras_model = tf.keras.models.load_model(MODEL_DIR / "denseNet.h5")
+
+        # Class labels
+        self.classes = ['No DR', 'Mild NPDR', 'Moderate NPDR', 'Severe NPDR', 'Proliferative DR']
+
+        # Torch transform
         self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                               std=[0.229, 0.224, 0.225])
+            transforms.Normalize([0.485, 0.456, 0.406],
+                                 [0.229, 0.224, 0.225])
         ])
-        
-        logger.info("DR Model initialized")
-    
-    def preprocess(self, image_tensor: torch.Tensor) -> torch.Tensor:
-        """Preprocess image for DR classification"""
-        # Convert to PIL Image for transforms
-        image_np = image_tensor.permute(1, 2, 0).numpy()
-        image_pil = Image.fromarray((image_np * 255).astype(np.uint8))
-        
-        # Apply transforms
-        processed = self.transform(image_pil)
-        return processed.unsqueeze(0)  # Add batch dimension
-    
-    def predict(self, image_tensor: torch.Tensor) -> Dict[str, Any]:
-        """Predict DR class and confidence"""
+
+    def generate_overlay_gradcam(self, gradcam: np.ndarray, preprocessed_rgb: np.ndarray) -> str:
         try:
-            # Preprocess image
-            processed_image = self.preprocess(image_tensor)
-            processed_image = processed_image.to(self.device)
-            
-            # Run inference
-            with torch.no_grad():
-                outputs = self.model(processed_image)
-                probabilities = F.softmax(outputs, dim=1)
-                confidence, predicted_idx = torch.max(probabilities, 1)
-            
-            # Get results
-            predicted_class = self.classes[predicted_idx.item()]
-            confidence_score = confidence.item()
-            
-            return {
-                "predicted_class": predicted_class,
-                "confidence": confidence_score,
-                "all_probabilities": probabilities.cpu().numpy().tolist()
-            }
-            
+            heatmap = np.uint8(255 * gradcam)
+            heatmap = cv2.resize(heatmap, (224, 224))
+            heatmap_color = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+            # Blend with original preprocessed image
+            overlay = cv2.addWeighted(preprocessed_rgb, 0.6, heatmap_color, 0.4, 0)
+
+            # Convert to PIL and encode as base64
+            overlay_rgb = cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB)
+            pil_img = Image.fromarray(overlay_rgb)
+            buffer = BytesIO()
+            pil_img.save(buffer, format="PNG")
+            b64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            return b64_str
+
         except Exception as e:
-            logger.error(f"DR prediction error: {e}")
-            # Return fallback prediction
-            return {
-                "predicted_class": "No DR",
-                "confidence": 0.85,
-                "all_probabilities": [0.85, 0.05, 0.05, 0.03, 0.02]
-            } 
+            print(f"Grad-CAM overlay generation failed: {e}")
+            return ""
+
+    def predict(self, image_array: np.ndarray) -> dict:
+        # Step 1: Preprocess using CLAHE + Resize (same as training)
+        preprocessed = preprocess_image(image_array)  # Output: 224x224 RGB CLAHE-enhanced
+
+        # Step 2: Torch prediction
+        torch_tensor = self.transform(Image.fromarray(preprocessed)).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            torch_output = self.torch_model(torch_tensor)
+            torch_probs = F.softmax(torch_output, dim=1)[0].cpu().numpy()
+            torch_pred = int(torch_probs.argmax())
+            torch_conf = float(torch_probs[torch_pred])
+
+        # Step 3: Keras prediction
+        keras_input = np.expand_dims(preprocessed.astype("float32") / 255.0, axis=0)
+        keras_output = self.keras_model.predict(keras_input)[0]
+        keras_pred = int(keras_output.argmax())
+        keras_conf = float(keras_output[keras_pred])
+
+        # Step 4: Grad-CAM (on torch model using preprocessed image)
+
+        # Step 5: Pick better model
+        # if keras_conf > torch_conf:
+        #     final_pred = keras_pred
+        #     final_conf = keras_conf
+        #     model_used = "Keras DenseNet"
+
+            
+        #     # Generate Grad-CAM from DenseNet
+        #     try:
+        #         heatmap = generate_gradcam_densenet(
+        #             self.keras_model,
+        #             tf.convert_to_tensor(keras_input),
+        #             keras_pred
+        #         )
+        #         gradcam_image_b64 = self.generate_overlay_gradcam(heatmap, cv2.cvtColor(preprocessed, cv2.COLOR_RGB2BGR))
+        #     except Exception as e:
+        #         gradcam_image_b64 = ""
+        #         print(f"[Warning] DenseNet Grad-CAM failed: {e}")
+            
+        # else:
+        final_pred = torch_pred
+        final_conf = torch_conf
+        model_used = "Vision Transformer"
+
+        try:
+            gradcam_map = generate_gradcam(self.torch_model, torch_tensor, torch_pred)
+            gradcam_image_b64 = self.generate_overlay_gradcam(gradcam_map, cv2.cvtColor(preprocessed, cv2.COLOR_RGB2BGR))
+        except Exception as e:
+            gradcam_image_b64 = ""
+            print(f"[Warning] Grad-CAM failed: {e}")
+                
+        return {
+            "status": "success",
+            "predicted_class": self.classes[final_pred],
+            "confidence": round(final_conf, 4),
+            "model_used": model_used,
+            "all_probabilities": {
+                #"keras": keras_output.tolist(),
+                "torch": torch_probs.tolist()
+            },
+            "gradcam_image": gradcam_image_b64
+        }

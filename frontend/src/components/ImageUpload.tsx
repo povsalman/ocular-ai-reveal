@@ -1,7 +1,6 @@
-
-import React, { useCallback, useState } from 'react';
-import { Upload, Image as ImageIcon, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useCallback, useState } from "react";
+import { Upload, Image as ImageIcon, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
   onImageSelect: (file: File, preview: string) => void;
@@ -14,7 +13,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   onImageSelect,
   selectedImage,
   onRemoveImage,
-  isAnalyzing
+  isAnalyzing,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -28,26 +27,32 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    
-    if (imageFile) {
-      const preview = URL.createObjectURL(imageFile);
-      onImageSelect(imageFile, preview);
-    }
-  }, [onImageSelect]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const preview = URL.createObjectURL(file);
-      onImageSelect(file, preview);
-    }
-  }, [onImageSelect]);
+      const files = Array.from(e.dataTransfer.files);
+      const imageFile = files.find((file) => file.type.startsWith("image/"));
+
+      if (imageFile) {
+        const preview = URL.createObjectURL(imageFile);
+        onImageSelect(imageFile, preview);
+      }
+    },
+    [onImageSelect]
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file && file.type.startsWith("image/")) {
+        const preview = URL.createObjectURL(file);
+        onImageSelect(file, preview);
+      }
+    },
+    [onImageSelect]
+  );
 
   if (selectedImage) {
     return (
@@ -56,8 +61,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <img
             src={selectedImage}
             alt="Selected retinal fundus"
-            className="w-full h-80 object-cover"
+            className="max-w-lg max-h-[28rem] object-contain mx-auto rounded-md"
           />
+
           {isAnalyzing && (
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
               <div className="bg-white/90 rounded-lg px-4 py-2 flex items-center space-x-2">
@@ -84,13 +90,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     <div
       className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer medical-shadow ${
         isDragOver
-          ? 'border-primary bg-primary/5 scale-105'
-          : 'border-gray-300 hover:border-primary/50 hover:bg-primary/5'
+          ? "border-primary bg-primary/5 scale-105"
+          : "border-gray-300 hover:border-primary/50 hover:bg-primary/5"
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onClick={() => document.getElementById('file-input')?.click()}
+      onClick={() => document.getElementById("file-input")?.click()}
     >
       <input
         id="file-input"
@@ -99,7 +105,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         onChange={handleFileSelect}
         className="hidden"
       />
-      
+
       <div className="flex flex-col items-center space-y-4">
         <div className="relative">
           <div className="w-16 h-16 rounded-full gradient-button flex items-center justify-center">
@@ -109,7 +115,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <ImageIcon className="h-3 w-3 text-white" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-gray-700">
             Upload Retinal Fundus Image
