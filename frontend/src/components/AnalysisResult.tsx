@@ -3,6 +3,7 @@ import React from 'react';
 import { CheckCircle, AlertTriangle, Info, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AnalysisResult as AnalysisResultType } from '@/types/analysis';
+import ReactMarkdown from 'react-markdown';
 
 interface AnalysisResultProps {
   result: AnalysisResultType;
@@ -89,9 +90,9 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
                     <h4 className="font-medium text-gray-800 mb-1">
                       Clinical Notes
                     </h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {result.additionalInfo}
-                    </p>
+                    <div className="text-sm text-gray-600 leading-relaxed">
+                      <ReactMarkdown>{result.additionalInfo}</ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -108,26 +109,34 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
         </CardContent>
       </Card>
 
-      {/* Segmentation Mask Display */}
-      {result.maskImage && (
+      {/* Key Features Display */}
+      {(result.features && Object.keys(result.features).length > 0) && (
         <Card className="gradient-result medical-shadow medical-border">
           <CardContent className="p-6">
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800 text-center">
-                Segmentation Result
+                Key features
               </h4>
-              <div className="flex justify-center">
-                <div className="relative rounded-lg overflow-hidden medical-shadow">
-                  <img
-                    src={result.maskImage}
-                    alt="Segmentation mask"
-                    className="w-full max-w-md h-auto"
-                  />
+              <div className="p-4 rounded-lg border border-green-200 bg-green-50 mb-4">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left pr-4 pb-1 text-green-800">Feature</th>
+                        <th className="text-left pb-1 text-green-800">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(result.features).map(([key, value]) => (
+                        <tr key={key}>
+                          <td className="pr-4 py-1 text-green-900 font-medium">{key}</td>
+                          <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(4) : value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <p className="text-sm text-gray-600 text-center">
-                AI-generated segmentation mask showing the detected regions of interest
-              </p>
             </div>
           </CardContent>
         </Card>

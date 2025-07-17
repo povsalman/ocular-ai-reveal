@@ -38,7 +38,7 @@ interface APIResponse {
   features?: Record<string, number | string>;
 }
 
-const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
+const ModuleAnalysisMyopia: React.FC<ModuleAnalysisProps> = ({
   moduleId,
   moduleName,
   generateMockResult
@@ -480,4 +480,4 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
   );
 };
 
-export default ModuleAnalysis;
+export default ModuleAnalysisMyopia;
