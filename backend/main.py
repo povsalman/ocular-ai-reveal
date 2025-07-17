@@ -153,6 +153,15 @@ async def predict(
             "confidence": result["confidence"],
             "model_type": model_type
         }
+
+        #DR Classification
+        if model_type == 'dr':
+            print("DR model")
+            print(f"DR Classification used model: {result.get('model_used')}")
+            response["gradcam_image"] = result.get("gradcam_image")
+            response["model_used"] = result.get("model_used")
+            response["all_probabilities"] = result.get("all_probabilities")
+        
         # Add features for myopia if present
         if model_type == 'myopia' and "features" in result:
             response["features"] = result["features"]
