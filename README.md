@@ -365,8 +365,6 @@ This helps users and practitioners understand why a certain prediction was made.
 
 ---
 
-If you'd like me to **replace the dummy Google Drive link** with your actual model link, just share it and I’ll plug it in. Let me know if you want the DR module to have its own metrics section or CLI tools too.
-
 
 ## 📞 Support
 
