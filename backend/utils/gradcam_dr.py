@@ -40,10 +40,10 @@ def generate_gradcam(model, input_tensor, class_idx):
     act = activations[0]         # [1, tokens, hidden_dim]
 
     # Global average pooling over gradients
-    weights = grad.mean(dim=1, keepdim=True)  # [1, 1, hidden_dim]
+    #weights = grad.mean(dim=1, keepdim=True)  # [1, 1, hidden_dim]
 
     # Weighted sum of activations
-    cam = (weights * act).sum(dim=2).squeeze(0)  # [tokens]
+    cam = ( act).sum(dim=2).squeeze(0)  # [tokens]
 
     # Remove class token
     cam = cam[1:]  # skip class token
