@@ -237,18 +237,12 @@ const ModuleAnalysisMyopia: React.FC<ModuleAnalysisProps> = ({
                       <tbody>
                         {Object.entries(analysisResult.features)
                           .filter(([key]) => key !== 'min_vessel_width' && key !== 'branch_density')
-                          .map(([key, value]) => {
-                            let displayKey = key;
-                            if (key === 'avg_vessel_width') displayKey = 'avg_vessel_length';
-                            else if (key === 'vessel_width_std') displayKey = 'vessel_length_std';
-                            else if (key === 'max_vessel_width') displayKey = 'max_vessel_length';
-                            return (
-                              <tr key={key}>
-                                <td className="pr-4 py-1 text-green-900 font-medium">{displayKey}</td>
-                                <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(2) : value}</td>
-                              </tr>
-                            );
-                          })}
+                          .map(([key, value]) => (
+                            <tr key={key}>
+                              <td className="pr-4 py-1 text-green-900 font-medium">{key}</td>
+                              <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(4) : value}</td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
@@ -311,13 +305,13 @@ const ModuleAnalysisMyopia: React.FC<ModuleAnalysisProps> = ({
                   </div>
                   {/* 1. Vessel Width Distribution */}
                   <div className="w-full">
-                    <h4 className="text-md font-semibold text-gray-700 mb-2 text-center">Vessel Length Metrics</h4>
+                    <h4 className="text-md font-semibold text-gray-700 mb-2 text-center">Vessel Width Metrics</h4>
                     <ResponsiveContainer width="100%" height={160}>
                       <BarChart
                         data={[
-                          { name: 'Avg Length', value: analysisResult.features.avg_vessel_width },
-                          { name: 'Max Length', value: analysisResult.features.max_vessel_width },
-                          { name: 'Length Std Dev', value: analysisResult.features.vessel_width_std },
+                          { name: 'Avg Width', value: analysisResult.features.avg_vessel_width },
+                          { name: 'Max Width', value: analysisResult.features.max_vessel_width },
+                          { name: 'Std Dev', value: analysisResult.features.vessel_width_std },
                         ].filter(d => d.value !== undefined)}
                         margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                       >

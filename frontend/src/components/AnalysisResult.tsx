@@ -130,7 +130,7 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
                       {Object.entries(result.features).map(([key, value]) => (
                         <tr key={key}>
                           <td className="pr-4 py-1 text-green-900 font-medium">{key}</td>
-                          <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(4) : value}</td>
+                          <td className="py-1 text-green-900">{typeof value === 'number' ? value.toFixed(2) : value}</td>
                         </tr>
                       ))}
                     </tbody>

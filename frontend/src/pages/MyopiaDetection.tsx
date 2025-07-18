@@ -11,37 +11,37 @@ const generateFeatureSummary = (features?: Record<string, number | string>): str
   }
   let summary = '**Feature-based Clinical Summary:**\n';
   if (features.avg_vessel_width !== undefined) {
-    summary += `- **Average Vessel Width:** ${features.avg_vessel_width} pixels. Wider vessels may be associated with vascular remodeling in myopia.\n`;
+    summary += `- **Average Vessel Length:** ${typeof features.avg_vessel_width === 'number' ? features.avg_vessel_width.toFixed(2) : features.avg_vessel_width} pixels. Longer vessels may be associated with vascular remodeling in myopia.\n`;
   }
   if (features.vessel_width_std !== undefined) {
-    summary += `- **Vessel Width Std Dev:** ${features.vessel_width_std} pixels. Greater variability may indicate irregular vessel structure.\n`;
+    summary += `- **Vessel Length Std Dev:** ${typeof features.vessel_width_std === 'number' ? features.vessel_width_std.toFixed(2) : features.vessel_width_std} pixels. Greater variability may indicate irregular vessel structure.\n`;
   }
   if (features.max_vessel_width !== undefined) {
-    summary += `- **Maximum Vessel Width:** ${features.max_vessel_width} pixels. High values may reflect dilated vessels.\n`;
+    summary += `- **Maximum Vessel Length:** ${typeof features.max_vessel_width === 'number' ? features.max_vessel_width.toFixed(2) : features.max_vessel_width} pixels. High values may reflect elongated vessels.\n`;
   }
   if (features.optic_disc_area_ratio !== undefined) {
-    summary += `- **Optic Disc Area Ratio:** ${features.optic_disc_area_ratio}. Larger ratios can be seen in myopic eyes.\n`;
+    summary += `- **Optic Disc Area Ratio:** ${typeof features.optic_disc_area_ratio === 'number' ? features.optic_disc_area_ratio.toFixed(2) : features.optic_disc_area_ratio}. Larger ratios can be seen in myopic eyes.\n`;
   }
   if (features.disc_circularity !== undefined) {
-    summary += `- **Disc Circularity:** ${features.disc_circularity}. Lower values may indicate a more oval or tilted disc, common in myopia.\n`;
+    summary += `- **Disc Circularity:** ${typeof features.disc_circularity === 'number' ? features.disc_circularity.toFixed(2) : features.disc_circularity}. Lower values may indicate a more oval or tilted disc, common in myopia.\n`;
   }
   if (features.disc_displacement !== undefined) {
-    summary += `- **Disc Displacement:** ${features.disc_displacement} pixels. Greater displacement may be associated with myopic changes.\n`;
+    summary += `- **Disc Displacement:** ${typeof features.disc_displacement === 'number' ? features.disc_displacement.toFixed(2) : features.disc_displacement} pixels. Greater displacement may be associated with myopic changes.\n`;
   }
   if (features.disc_eccentricity !== undefined) {
-    summary += `- **Disc Eccentricity:** ${features.disc_eccentricity}. Higher eccentricity suggests a more elongated optic disc.\n`;
+    summary += `- **Disc Eccentricity:** ${typeof features.disc_eccentricity === 'number' ? features.disc_eccentricity.toFixed(2) : features.disc_eccentricity}. Higher eccentricity suggests a more elongated optic disc.\n`;
   }
   if (features.cup_to_disc_ratio !== undefined) {
-    summary += `- **Cup-to-Disc Ratio:** ${features.cup_to_disc_ratio}. Used to assess optic nerve health; higher ratios may indicate risk of glaucoma.\n`;
+    summary += `- **Cup-to-Disc Ratio:** ${typeof features.cup_to_disc_ratio === 'number' ? features.cup_to_disc_ratio.toFixed(2) : features.cup_to_disc_ratio}. Used to assess optic nerve health; higher ratios may indicate risk of glaucoma.\n`;
   }
   if (features.disc_aspect_ratio !== undefined) {
-    summary += `- **Disc Aspect Ratio:** ${features.disc_aspect_ratio}. Reflects the shape of the optic disc.\n`;
+    summary += `- **Disc Aspect Ratio:** ${typeof features.disc_aspect_ratio === 'number' ? features.disc_aspect_ratio.toFixed(2) : features.disc_aspect_ratio}. Reflects the shape of the optic disc.\n`;
   }
   if (features.disc_ellipse_angle !== undefined) {
-    summary += `- **Disc Ellipse Angle:** ${features.disc_ellipse_angle}°. Orientation of the optic disc ellipse.\n`;
+    summary += `- **Disc Ellipse Angle:** ${typeof features.disc_ellipse_angle === 'number' ? features.disc_ellipse_angle.toFixed(2) : features.disc_ellipse_angle}°. Orientation of the optic disc ellipse.\n`;
   }
   if (features.macular_mean_intensity_r0 !== undefined) {
-    summary += `- **Macular Mean Intensity (r0):** ${features.macular_mean_intensity_r0}. Reflects brightness in the macular region.\n`;
+    summary += `- **Macular Mean Intensity (r0):** ${typeof features.macular_mean_intensity_r0 === 'number' ? features.macular_mean_intensity_r0.toFixed(2) : features.macular_mean_intensity_r0}. Reflects brightness in the macular region.\n`;
   }
   return summary.trim();
 };
