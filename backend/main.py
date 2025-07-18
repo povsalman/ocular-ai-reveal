@@ -213,13 +213,26 @@ async def predict(
             "cdr": result["cdr"],
             "model_type": model_type
         }
+        
+        #DR Classification
+        if model_type == 'dr':
+            print("DR model")
+            print(f"DR Classification used model: {result.get('model_used')}")
+            response["gradcam_image"] = result.get("gradcam_image")
+            response["model_used"] = result.get("model_used")
+            response["all_probabilities"] = result.get("all_probabilities")
 
-        if model_type == 'vessel':
-            if "dataset_used" in result:
-                response["dataset_used"] = result["dataset_used"]
-            if "metrics" in result:
-                response["metrics"] = result["metrics"]
-
+        
+        # Add dataset information for vessel segmentation
+        if model_type == 'vessel' and "dataset_used" in result:
+            response["dataset_used"] = result["dataset_used"]
+        
+        # Add metrics for vessel segmentation
+        if model_type == 'vessel' and "metrics" in result:
+            print("vessel")
+            response["metrics"] = result["metrics"]
+        
+        # Add mask image for segmentation models
         if model_type in ['vessel', 'glaucoma'] and "mask" in result:
             response["mask_image"] = encode_mask_to_base64(result["mask"])
 

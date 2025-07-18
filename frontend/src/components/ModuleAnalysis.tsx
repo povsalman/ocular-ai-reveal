@@ -43,12 +43,19 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultType | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const { toast } = useToast();
 
   const handleImageSelect = (file: File, preview: string) => {
     setSelectedFile(file);
     setSelectedImage(preview);
     setAnalysisResult(null);
+    // Get image dimensions
+    const img = new window.Image();
+    img.onload = () => {
+      setImageDimensions({ width: img.width, height: img.height });
+    };
+    img.src = preview;
     console.log('Image selected:', file.name, file.type);
   };
 
@@ -217,12 +224,8 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                   <img 
                     src={selectedImage} 
                     alt="Uploaded retinal image" 
-                    className="max-w-full max-h-96 object-contain rounded-lg"
-                    style={{ 
-                      aspectRatio: 'auto',
-                      width: 'auto',
-                      height: 'auto'
-                    }}
+                    className="object-contain rounded-lg"
+                    style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
                   />
                 </div>
               )}
@@ -276,7 +279,7 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
             </div>
 
             {/* Prediction and Confidence */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Prediction</p>
                 <p className="text-lg font-semibold text-gray-800">{analysisResult.prediction}</p>
@@ -292,15 +295,21 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Confidence</p>
+                  <p className="text-sm text-gray-600">Confidence Score</p>
                   <div className="flex items-center space-x-2">
                     {getConfidenceIcon(analysisResult.confidence)}
-                    <span className={`text-lg font-semibold ${getConfidenceColor(analysisResult.confidence)}`}>
+                    <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
                       {analysisResult.confidence.toFixed(1)}%
                     </span>
                   </div>
                 </div>
               )}
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">Selected Model</p>
+                <p className="text-lg font-semibold text-blue-700">
+                  {analysisResult.details.replace('Dataset: ', '') || 'Unknown'}
+                </p>
+              </div>
             </div>
 
             {/* Metrics Grid */}

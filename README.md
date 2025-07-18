@@ -1,4 +1,4 @@
-# Ocular AI Reveal - Retinal Fundus Analysis Platform
+# Ocular AI Reveal - Retinal Fundus Analysis Platform!
 
 A comprehensive web application for AI-powered retinal fundus image analysis, featuring multiple deep learning models for various ophthalmological assessments.
 
@@ -250,110 +250,121 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **UI Framework**: Built with React, TypeScript, and Tailwind CSS
 - **Backend**: FastAPI for high-performance API development
 
-Thanks for the clarification! Here’s the updated README-style description for Glaucoma Segmentation and Detection, now with the correct segmentation colors:
+---
 
-⸻
+##  Diabetic Retinopathy (DR) Classification
 
-## 👁️ Glaucoma Segmentation and Detection
+The **DR Classification** module uses two state-of-the-art deep learning models — **DenseNet** and a **Vision Transformer (ViT)** — to classify the severity of diabetic retinopathy from retinal fundus images.
 
-The Glaucoma Detection module combines a U-Net-based segmentation model with a DenseNet201 classifier to analyze retinal fundus images for signs of glaucoma.
+###  Folder Structure & Setup
 
-⸻
+Due to GitHub's file size restrictions, model files are not included in the repository.
 
-### Folder Structure & Setup
+To enable DR classification:
 
-To enable glaucoma segmentation and classification:
-	1.	Download the model files from the following Google Drive folder:
-📎 Download Glaucoma Models
-	2.	Place the models in the following directory inside your backend:
+1. **Download the model files** from the following Google Drive folder:
+   📎 **[Download DR Models](https://drive.google.com/drive/folder/your-model-folder-link)**
 
+2. **Place the models** in the following directory structure inside your backend:
+
+```
 backend/
 └── models/
-    └── glaucoma_models/
-        ├── segmentation_unet.pth        # U-Net for optic disc/cup segmentation
-        └── best_model1.pth              # DenseNet201 + custom head for glaucoma classification
+    └── dr_models/
+        ├── denseNet.h5              # TensorFlow/Keras DenseNet model
+        └── vit.pth                  # PyTorch Vision Transformer model
+```
 
-The folder must be named glaucoma_models and placed under backend/models/.
+>  The folder must be named `dr_models` exactly and placed under `backend/models/`.
 
-⸻
+---
 
-### How It Works
-	•	A retinal fundus image is uploaded by the user.
-	•	The U-Net segmentation model detects:
-	•	Optic Disc (label 1)
-	•	Optic Cup (label 2)
-	•	From this segmentation, the Cup-to-Disc Ratio (CDR) is computed:
-	•	$$ \text{CDR} = \frac{\text{Cup Area}}{\text{Disc Area}} $$
-	•	The segmented Region of Interest (ROI) is extracted.
-	•	The DenseNet201 classifier receives the ROI and CDR as input to predict glaucoma presence.
-	•	The final output includes:
-	•	Predicted class
-	•	Confidence score
-	•	CDR value
-	•	Segmentation mask
+###  How It Works
 
-⸻
+* The system takes a **retinal fundus image** as input.
+* Both models make predictions independently.
+* The prediction with the **higher confidence score** is selected as the final result.
+* A **Grad-CAM heatmap** is generated to visually explain which regions of the retina influenced the prediction.
 
-### Segmentation Labels
+---
 
+###  DR Classification Stages
 
-| Region      | Label | Color Example |
-|-------------|--------|----------------|
-| Optic Disc  | 1      | 🔴 Red         |
-| Optic Cup   | 2      | 🟢 Green       |
+| Stage                | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| **No DR**            | No signs of diabetic retinopathy were detected.                                     |
+| **Mild NPDR**        | Microaneurysms are present. Regular monitoring is recommended.                      |
+| **Moderate NPDR**    | Blood vessel damage is visible. Closer monitoring and treatment may be needed.      |
+| **Severe NPDR**      | Extensive damage and blocked vessels are present. Urgent care may be required.      |
+| **Proliferative DR** | Abnormal blood vessel growth is observed. Immediate medical attention is necessary. |
 
-⸻
+---
 
-### CDR Threshold Interpretation
+###  Grad-CAM Explanation
 
-| CDR Value Range | Interpretation                     |
-|------------------|------------------------------------|
-| 0.1 – 0.5        | Normal                             |
-| > 0.5 – 0.6      | Borderline / Clinical review       |
-| > 1.0            | High risk of glaucoma              |
+The Grad-CAM visualization highlights the regions of the retinal image that contributed most to the model's decision:
 
-⸻
+* 🔴 **Bright red/yellow regions**: High attention areas
+* 🔵 **Cooler or dark regions**: Low attention areas
 
-### Example Workflow
-	1.	Go to http://localhost:3000
-	2.	Click on “Glaucoma Detection”
-	3.	Upload a retinal image
-	4.	Click “Start Analysis”
-	5.	View:
-	•	Segmentation mask
-	•	CDR ratio
-	•	Final classification result
+This helps users and practitioners understand why a certain prediction was made.
 
-⸻
+---
 
-### API Support for Glaucoma Detection
+###  Example Workflow
 
-Endpoint:
+1. Navigate to `http://localhost:3000`
+2. Click on **"DR Classification"**
+3. Upload a **retinal fundus image**
+4. Click **"Start Analysis"**
+5. View:
 
-POST /predict/
+   * Predicted **DR stage**
+   * **Confidence score** of the prediction
+   * Model used (DenseNet or ViT)
+   * **Grad-CAM heatmap** for model interpretability
+   * Textual explanation for the predicted DR stage
 
-Payload:
-	•	file: Image file
-	•	model_type: "glaucoma"
+---
 
-Response Format:
+### 🔍 API Support for DR Classification
 
+#### POST `/predict/`
+
+* `file`: Image file
+* `model_type`: `"dr"`
+
+**Response Format:**
+
+```json
 {
   "status": "success",
-  "predicted_class": "Glaucoma Detected",
-  "cdr": 0.65,
-  "mask": "<base64_encoded_mask>"
+  "predicted_class": "Moderate NPDR",
+  "confidence": 0.91,
+  "model_used": "ViT",
+  "gradcam_image": "<base64_encoded_image>"
 }
+```
 
+---
 
-⸻
+###  Model Details
 
-### Model Details
+| Model                    | Framework        | Type              | Description                                       |
+| ------------------------ | ---------------- | ----------------- | ------------------------------------------------- |
+| DenseNet                 | TensorFlow/Keras | Convolutional     | Lightweight, high-accuracy CNN for classification |
+| Vision Transformer (ViT) | PyTorch          | Transformer-based | Excels in capturing global image context          |
 
-| Model                    | Framework | Type          | Description                                                                 |
-|--------------------------|-----------|---------------|-----------------------------------------------------------------------------|
-| U-Net                    | PyTorch   | Segmentation  | Detects optic disc (red) and cup (green) regions from retinal images        |
-| DenseNet201 + CDR Head   | PyTorch   | Classification| Predicts glaucoma using the cropped ROI and cup-to-disc ratio (CDR)         |
+---
+
+###  Expected Results
+
+* For clear fundus images, confidence scores ≥ 80% are expected.
+* For low-quality or blurry images, confidence may drop and users may be shown a warning.
+* Grad-CAM is available for most successful predictions to improve interpretability.
+
+---
+
 
 ## 📞 Support
 

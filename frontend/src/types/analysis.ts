@@ -9,6 +9,7 @@ export interface AnalysisResult {
   riskLevel: 'low' | 'medium' | 'high';
   additionalInfo?: string;
   maskImage?: string; // For segmentation results
+  gradcam_image?: string; // For dr classification results 
   metrics?: {
     dice_coefficient: number;
     sensitivity: number;
