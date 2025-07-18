@@ -552,6 +552,7 @@ This module follows the same **FastAPI + React** architecture as the rest of the
    ```
    backend/models/age_models/age_model.pth
    ```
+   Available for download at: https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing
 
 2. **Install Python dependencies**:
 
@@ -670,7 +671,7 @@ curl -X POST -F "file=@your_image.jpg" -F "model_type=age" http://localhost:8000
 
 * **Backend doesn’t predict**:
 
-  * Ensure `age_model.pth` exists at `backend/models/age_models/`
+  * Ensure `age_model.pth` exists at `https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing`
   * Verify all dependencies are installed (especially `torch` and `timm`)
 
 * **Frontend blank or broken**:
