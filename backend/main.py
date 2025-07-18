@@ -17,7 +17,6 @@ from models.vessel_model import VesselModel
 from models.age_model import AgeModel
 from models.myopia_model import MyopiaModel
 from models.glaucoma_model import GlaucomaModel
-from utils.preprocessing_glaucoma import preprocess_glaucoma_image, encode_mask_to_base64_glaucoma
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,8 +53,8 @@ async def load_models():
         models['myopia'] = MyopiaModel()
         #models['glaucoma'] = GlaucomaModel()
         models['glaucoma'] = GlaucomaDualModel(
-            segmentation_checkpoint="models/glaucoma_models/unet_origa2.pth",
-            classification_checkpoint="models/glaucoma_models/best_model1.pth",
+            segmentation_checkpoint="/Users/Adeena/Downloads/unet_origa2.pth",
+            classification_checkpoint="/Users/Adeena/Downloads/best_model1.pth",
             device="cpu"   # or "cuda" if you have GPU
         )
         
@@ -68,26 +67,79 @@ async def load_models():
 def preprocess_image(image_file: UploadFile) -> np.ndarray:
     """Preprocess uploaded image for model inference"""
     try:
-         # Read image
-        image_data = image_file.file.read()
-        image = Image.open(io.BytesIO(image_data))
+        # Read image file
+        image_bytes = image_file.file.read()
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        tensor = transforms.ToTensor()(image)  # Converts to C,H,W float32
+        return tensor
+        # Resize to 256x256
+        image = image.resize((256, 256))
         
-        # Convert to RGB if necessary
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Convert to numpy array and normalize
+        image_array = np.array(image) / 255.0
         
-        # Convert to numpy array
-        image_array = np.array(image)
+        # Convert to tensor
+        image_tensor = torch.tensor(image_array, dtype=torch.float32).permute(2, 0, 1)  # HWC to CHW
         
-        return image_array
-    
+        return image_tensor
+        
     except Exception as e:
         logger.error(f"Error preprocessing image: {e}")
         raise HTTPException(status_code=400, detail="Invalid image format")
 
-def encode_mask_to_base64(mask: np.ndarray) -> str:
+def encode_mask_to_base64(mask: torch.Tensor | np.ndarray) -> str:
+    """
+    Encodes a segmentation mask (class labels) into base64 PNG.
+    Supports torch.Tensor or np.ndarray inputs.
+    """
+    try:
+        # If torch tensor, move to CPU and convert to numpy
+        if isinstance(mask, torch.Tensor):
+            mask = mask.detach().cpu().numpy()
+
+        # If mask is probabilities, convert to labels
+        if mask.ndim == 3:
+            # Shape (C, H, W): assume channel-first
+            mask = np.argmax(mask, axis=0)
+        elif mask.ndim == 4:
+            # Shape (1, C, H, W): squeeze and argmax
+            mask = np.argmax(mask.squeeze(0), axis=0)
+        elif mask.ndim != 2:
+            raise ValueError(f"Unsupported mask shape: {mask.shape}")
+
+        # Convert to uint8
+        mask = mask.astype(np.uint8)
+
+        # Create a PIL Image with palette
+        mask_image = Image.fromarray(mask, mode="P")
+
+        # Palette: black, red, green
+        palette = [
+            0, 0, 0,      # Class 0: black
+            255, 0, 0,    # Class 1: red
+            0, 255, 0     # Class 2: green
+        ]
+        mask_image.putpalette(palette)
+
+        # Save to PNG buffer
+        buffer = io.BytesIO()
+        mask_image.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        # Base64 encode
+        encoded = base64.b64encode(buffer.getvalue()).decode()
+        return encoded
+
+    except Exception as e:
+        logger.error(f"Error encoding mask: {e}")
+        return ""
+
+#def encode_mask_to_base64(mask: np.ndarray) -> str:
     """Convert segmentation mask to base64 encoded PNG"""
     try:
+        # Convert tensor to numpy if needed
+        if isinstance(mask, torch.Tensor):
+            mask = mask.cpu().numpy()
         # Ensure mask is in the right format
         if len(mask.shape) == 3:
             mask = mask.squeeze()  # Remove extra dimensions
@@ -112,7 +164,6 @@ def encode_mask_to_base64(mask: np.ndarray) -> str:
     except Exception as e:
         logger.error(f"Error encoding mask: {e}")
         return ""
-
 
 @app.post("/predict/")
 async def predict(
@@ -146,10 +197,7 @@ async def predict(
             )
         
         # Preprocess image
-        if model_type == 'glaucoma':
-            image_array = preprocess_glaucoma_image(file)
-        else:
-            image_array = preprocess_image(file)
+        image_array = preprocess_image(file)
 
         # Run inference
         if model_type == 'glaucoma':
@@ -158,7 +206,16 @@ async def predict(
             result = model.predict(image_array)
 
         # Build response
+        response = {
+            "status": result.get("status", "success"),
+            "predicted_class": result["predicted_class"],
+            "confidence": result["confidence"],
+            "cdr": result["cdr"],
+            "model_type": model_type
+        }
         
+<<<<<<< Updated upstream
+=======
         if model_type == 'glaucoma':
             response = {
                 "status": result.get("status", "success"),
@@ -174,7 +231,11 @@ async def predict(
                 "confidence": result.get("confidence"),
                 "model_type": model_type
             }
+            # For age prediction, add predicted_age to the response
+            if model_type == 'age' and "predicted_age" in result:
+                response["predicted_age"] = result["predicted_age"]
 
+>>>>>>> Stashed changes
         #DR Classification
         if model_type == 'dr':
             print("DR model")
@@ -183,10 +244,7 @@ async def predict(
             response["model_used"] = result.get("model_used")
             response["all_probabilities"] = result.get("all_probabilities")
 
-        # Myopia Detection, add features for myopia if present
-        if model_type == 'myopia' and "features" in result:
-            response["features"] = result["features"]
-
+        
         # Add dataset information for vessel segmentation
         if model_type == 'vessel' and "dataset_used" in result:
             response["dataset_used"] = result["dataset_used"]
@@ -198,15 +256,9 @@ async def predict(
         
         # Add mask image for segmentation models
         if model_type in ['vessel', 'glaucoma'] and "mask" in result:
-            if model_type == 'glaucoma':
-                response["mask_image"] = encode_mask_to_base64_glaucoma(result["mask"])
-            else:
-                response["mask_image"] = encode_mask_to_base64(result["mask"])
+            response["mask_image"] = encode_mask_to_base64(result["mask"])
 
         return JSONResponse(content=response)
-
-
-
 
     except Exception as e:
         logger.error(f"Prediction error: {e}")
