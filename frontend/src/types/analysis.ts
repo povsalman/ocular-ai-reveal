@@ -21,4 +21,6 @@ export interface AnalysisResult {
   };
   features?: Record<string, number | string>;
   cdr?: number; // Cup-to-disc ratio for glaucoma detection 
+  numericAge?: number; // Numeric age for age prediction
+  modelName?: string; // Model name for display
 }

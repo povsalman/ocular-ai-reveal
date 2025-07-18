@@ -529,3 +529,167 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
 - For development, both frontend and backend must be running simultaneously.
 ---
 
+
+
+
+# 🧓 Retinal Age Prediction Module
+
+### 📝 Overview
+
+The **Age Prediction** module uses deep learning to estimate a patient’s age from retinal fundus images. It leverages a pretrained **InceptionResNetV2** architecture, fine-tuned on the [ODIR-5K Dataset](https://www.kaggle.com/datasets/andrewmvd/ocular-disease-recognition-odir5k), enabling non-invasive retinal age estimation.
+
+This module follows the same **FastAPI + React** architecture as the rest of the Ocular AI Reveal platform and integrates cleanly into the shared backend/frontend structure.
+
+---
+
+### 🚀 How to Run
+
+#### 🐍 Backend
+
+1. **Ensure model file is present**:
+   Place the trained model in:
+
+   ```
+   backend/models/age_models/age_model.pth
+   ```
+   Available for download at: https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing
+
+2. **Install Python dependencies**:
+
+   ```bash
+   cd backend
+   python -m venv venv
+
+   # Activate the virtual environment:
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+
+   pip install -r requirements.txt
+   ```
+
+3. **Run the backend server**:
+
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+#### ⚛️ Frontend
+
+1. **Install frontend dependencies**:
+
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Start development server**:
+
+   ```bash
+   npm run dev
+   ```
+
+   The app will be available at:
+   `http://localhost:8000`
+
+---
+
+### 📦 Required Libraries
+
+#### Backend
+
+The following libraries are required for the Age Prediction module (included in `requirements.txt`):
+
+* `torch` (PyTorch)
+* `timm` (for InceptionResNetV2 model)
+* `Pillow` (image handling)
+* `numpy` (array operations)
+* `torchvision.transforms` (image preprocessing)
+* `fastapi`, `uvicorn` (API development)
+* `logging`, `typing` (standard library utilities)
+
+#### Frontend
+
+* `React`, `Tailwind CSS`, `shadcn/ui`
+* Part of the existing unified React/Vite frontend
+
+---
+
+### 🔌 API Endpoint
+
+#### POST `/predict/`
+
+**Parameters:**
+
+| Name         | Type     | Description                           |
+| ------------ | -------- | ------------------------------------- |
+| `file`       | `File`   | Retinal fundus image (PNG, JPG, JPEG) |
+| `model_type` | `String` | Must be `"age"`                       |
+
+**Example Request (cURL):**
+
+```bash
+curl -X POST -F "file=@your_image.jpg" -F "model_type=age" http://localhost:8000/predict/
+```
+
+**Example Response:**
+
+```json
+{
+  "status": "success",
+  "predicted_age": 57.34,
+  "confidence": 0.89,
+  "model_type": "age"
+}
+```
+
+---
+
+### 🧠 Model Details
+
+* **Architecture**: InceptionResNetV2 (via `timm`)
+* **Input**: 299x299 RGB image
+* **Output**: Continuous predicted age (float)
+* **Preprocessing**: Resize, normalize, convert to tensor
+* **Loss Function**: Mean Squared Error during training
+* **Inference**: Optimized for CPU; <5s per image
+
+---
+
+### 💡 Expected Results
+
+| Input Quality      | Expected Output                                   |
+| ------------------ | ------------------------------------------------- |
+| High-quality image | Accurate age prediction within ±5 years (usually) |
+| Low-quality image  | Lower confidence and possible warning             |
+| Invalid input      | Returns error with appropriate message            |
+
+---
+
+### 🛠️ Troubleshooting
+
+* **Backend doesn’t predict**:
+
+  * Ensure `age_model.pth` exists at `https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing`
+  * Verify all dependencies are installed (especially `torch` and `timm`)
+
+* **Frontend blank or broken**:
+
+  * Ensure `ModuleAnalysisAge.tsx` exists and is routed
+  * Check console for import errors or missing components
+
+* **CORS issues**:
+
+  * Ensure FastAPI is configured with proper CORS middleware
+
+* **Low confidence predictions**:
+
+  * Recommend using high-resolution, centered fundus images
+
+---
+
+### 🔍 Integration Note
+
+This module plugs into the unified `/predict/` API using `model_type: "age"`, following the same interface and workflow as the other modules.
+
