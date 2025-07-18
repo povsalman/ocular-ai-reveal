@@ -279,38 +279,43 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
             </div>
 
             {/* Prediction and Confidence */}
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <div className="space-y-2">
+            <div className={`grid gap-4 mb-6 ${analysisResult?.moduleId === 'glaucoma_detection' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+              {/* Prediction */}
+              <div className="space-y-2 text-center">
                 <p className="text-sm text-gray-600">Prediction</p>
                 <p className="text-lg font-semibold text-gray-800">{analysisResult.prediction}</p>
               </div>
 
-              {/* Confidence or CDR depending on module */}
+              {/* Confidence or CDR */}
               {analysisResult?.moduleId === 'glaucoma_detection' ? (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
-                  </p>
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
+                <p className="text-lg font-semibold text-blue-600">
+                  {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">Confidence Score</p>
+                <div className="flex items-center space-x-2">
+                  {getConfidenceIcon(analysisResult.confidence)}
+                  <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
+                    {analysisResult.confidence.toFixed(1)}%
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Confidence Score</p>
-                  <div className="flex items-center space-x-2">
-                    {getConfidenceIcon(analysisResult.confidence)}
-                    <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
-                      {analysisResult.confidence.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
+              </div>
+            )}
+
+            {/* Selected Model (non-glaucoma only) */}
+            {analysisResult?.moduleId !== 'glaucoma_detection' && (
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Selected Model</p>
                 <p className="text-lg font-semibold text-blue-700">
-                  {analysisResult.details.replace('Dataset: ', '') || 'Unknown'}
+                  {analysisResult.details?.replace('Dataset: ', '') || 'Unknown'}
                 </p>
               </div>
-            </div>
+            )}
+          </div>
 
             {/* Metrics Grid */}
             {analysisResult.metrics && (
