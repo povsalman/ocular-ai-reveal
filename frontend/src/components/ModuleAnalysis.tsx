@@ -152,6 +152,14 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         modelName: moduleId === 'age_prediction' ? 'InceptionResnetV2' : undefined
       };
 
+      // For age prediction, add modelName and numericAge
+      if (moduleId === 'age_prediction') {
+        result.modelName = 'InceptionResnetV2';
+        if (typeof apiResult.predicted_age === 'number') {
+          result.numericAge = apiResult.predicted_age;
+        }
+      }
+
       setAnalysisResult(result);
 
       // Show warning for low confidence
@@ -220,12 +228,13 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
       {/* Results Section */}
       {analysisResult ? (
         <div className="space-y-6">
-          {/* Two-column layout for image and mask */}
+          {/* Two-column layout for image and mask or custom info */}
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Original Image */}
             <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Original Image</h3>
               {selectedImage && (
+<<<<<<< Updated upstream
                 <div className="flex justify-center">
                   <img 
                     src={selectedImage} 
@@ -402,9 +411,156 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                     ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
                   </span>
                 </div>
+=======
+                analysisResult?.moduleId === 'glaucoma_detection' ? (
+                  <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex items-center justify-center">
+                    <img
+                      src={selectedImage}
+                      alt="Uploaded retinal image"
+                      className="w-[480px] h-[480px] rounded-lg shadow-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <img 
+                      src={selectedImage} 
+                      alt="Uploaded retinal image" 
+                      className="object-contain rounded-lg shadow-sm"
+                      style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
+                    />
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Right column: custom for age prediction, mask for others */}
+            {analysisResult.moduleId === 'age_prediction' ? (
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border flex flex-col items-center justify-center space-y-6">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model & Prediction Details</h3>
+                <div className="w-full flex flex-col items-center space-y-4">
+                  <div className="text-center">
+                    <span className="block text-sm text-gray-500">Selected Model</span>
+                    <span className="text-xl font-bold text-blue-700">{analysisResult.modelName}</span>
+                  </div>
+                  {typeof analysisResult.numericAge === 'number' && (
+                    <div className="text-center">
+                      <span className="block text-sm text-gray-500">Predicted Age</span>
+                      <span className="text-xl font-bold text-green-700">{analysisResult.numericAge.toFixed(1)} years</span>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <span className="block text-sm text-gray-500">Confidence</span>
+                    <span className="text-xl font-bold text-purple-700">{analysisResult.confidence.toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-6">Segmentation Mask</h3>
+                {analysisResult.maskImage ? (
+                  analysisResult.moduleId === 'glaucoma_detection' ? (
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex flex-col items-center justify-center">
+                        <img
+                          src={analysisResult.maskImage}
+                          alt="Segmentation mask"
+                          className="w-[480px] h-[480px] rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-center">
+                      <img 
+                        src={analysisResult.maskImage} 
+                        alt="Segmentation mask" 
+                        className="object-contain rounded-lg shadow-sm"
+                        style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
+                      />
+                    </div>
+                  )
+                ) : (
+                  <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <span className="ml-2 text-gray-500">No mask available</span>
+                  </div>
+                )}
+>>>>>>> Stashed changes
               </div>
             )}
           </div>
+
+          {/* Metrics Grid and Warning for non-age-prediction modules only */}
+          {analysisResult.moduleId !== 'age_prediction' && (
+            <>
+              {/* Metrics Grid */}
+              {analysisResult.metrics && (
+                <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Metrics</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
+                      <p className="text-lg font-bold text-blue-600">
+                        {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
+                      <p className="text-lg font-bold text-green-600">
+                        {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Specificity</p>
+                      <p className="text-lg font-bold text-purple-600">
+                        {(analysisResult.metrics.specificity * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">F1 Score</p>
+                      <p className="text-lg font-bold text-orange-600">
+                        {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-red-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Accuracy</p>
+                      <p className="text-lg font-bold text-red-600">
+                        {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-indigo-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
+                      <p className="text-lg font-bold text-indigo-600">
+                        {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-teal-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">AUC</p>
+                      <p className="text-lg font-bold text-teal-600">
+                        {(analysisResult.metrics.auc * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
+                      <p className="text-lg font-bold text-gray-600">
+                        {analysisResult.details.split(': ')[1] || 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Warning for low confidence */}
+              {analysisResult.metrics?.dice_coefficient && analysisResult.metrics.dice_coefficient < 0.4 && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <span className="text-yellow-800 font-medium">
+                      ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       ) : (
         <div className="gradient-card rounded-xl p-8 medical-shadow medical-border text-center">

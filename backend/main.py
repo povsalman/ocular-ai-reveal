@@ -214,6 +214,28 @@ async def predict(
             "model_type": model_type
         }
         
+<<<<<<< Updated upstream
+=======
+        if model_type == 'glaucoma':
+            response = {
+                "status": result.get("status", "success"),
+                "predicted_class": result["predicted_class"],
+                "cdr": result.get("cdr"),
+                "model_type": model_type,
+            }
+
+        else:
+            response = {
+                "status": result.get("status", "success"),
+                "predicted_class": result["predicted_class"],
+                "confidence": result.get("confidence"),
+                "model_type": model_type
+            }
+            # For age prediction, add predicted_age to the response
+            if model_type == 'age' and "predicted_age" in result:
+                response["predicted_age"] = result["predicted_age"]
+
+>>>>>>> Stashed changes
         #DR Classification
         if model_type == 'dr':
             print("DR model")

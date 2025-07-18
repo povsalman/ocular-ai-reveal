@@ -48,7 +48,7 @@ ocular-ai-reveal/
 - Python 3.8+
 - Git
 
-### 1. Clone the Repository
+### 1. Clo0ne the Repository
 
 ```bash
 git clone <repository-url>
