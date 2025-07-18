@@ -384,17 +384,20 @@ Here is a sample README file for the **Myopia Detection** module, covering setup
 
 ---
 
-# Myopia Detection Module
 
-## Overview
+
+
+# 👁️ Myopia Detection Module
+
+## 📝 Overview
 
 This module provides AI-powered myopia risk assessment and feature analysis from retinal fundus images. It consists of a React frontend and a FastAPI backend, with a machine learning model for myopia detection and feature extraction.
 
 ---
 
-## How to Run
+## 🚀 How to Run
 
-### Backend
+### 🐍 Backend
 
 1. **Install Python dependencies:**
    ```bash
@@ -422,7 +425,7 @@ This module provides AI-powered myopia risk assessment and feature analysis from
    - The API will be available at [http://localhost:8000](http://localhost:8000)
    - API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-### Frontend
+### ⚛️ Frontend
 
 1. **Install Node.js dependencies:**
    ```bash
@@ -438,7 +441,7 @@ This module provides AI-powered myopia risk assessment and feature analysis from
 
 ---
 
-## Libraries Used
+## 📦 Libraries Used
 
 ### Backend
 
@@ -465,7 +468,7 @@ See `frontend/package.json` for full list.
 
 ---
 
-## API
+## 🔌 API
 
 ### Endpoint
 
@@ -493,39 +496,37 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
   "features": {
     "avg_vessel_length": 32.23,
     "vessel_length_std": 15.94,
-    "max_vessel_length": 87.20,
-    ...
+    "max_vessel_length": 87.20
   }
 }
 ```
 
 ---
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
-- **White screen on frontend:**  
+- **⚪ White screen on frontend:**  
   - Ensure all required files (especially `ModuleAnalysis.tsx` or `ModuleAnalysisMyopia.tsx`) exist and are correctly imported.
   - Check the browser console for errors.
   - Restart the frontend after any file changes.
 
-- **Backend errors:**  
+- **🐍 Backend errors:**  
   - Check that all model files are present in `python/Myopia Detection/`.
   - Ensure the virtual environment is activated and dependencies are installed.
   - Check the backend terminal for error logs.
 
-- **CORS errors:**  
+- **🌐 CORS errors:**  
   - Make sure the backend allows requests from your frontend URL (see CORS settings in `main.py`).
 
-- **API not responding:**  
+- **🔗 API not responding:**  
   - Confirm the backend is running and accessible at the correct port.
 
 ---
 
-## Additional Notes
+## 📝 Additional Notes
 
 - The clinical summary and key features are displayed with up to 2 decimal points for clarity.
 - Feature names in the UI use the `*_length` convention (e.g., `avg_vessel_length`).
 - For development, both frontend and backend must be running simultaneously.
-
 ---
 
