@@ -32,7 +32,6 @@ interface APIResponse {
   metrics?: APIMetrics;
   mask_image?: string;
   cdr?: number; // For glaucoma detection
-  predicted_age?: number; // For age prediction
 }
 
 const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
@@ -140,25 +139,12 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         confidence: apiResult.confidence * 100, // Convert to percentage
         details: `Dataset: ${apiResult.dataset_used || 'Unknown'}`,
         riskLevel: mapRiskLevel(apiResult.confidence * 100),
-        // Only set maskImage for modules that use it
-        maskImage: (moduleId !== 'age_prediction' && apiResult.mask_image) ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
-        additionalInfo: moduleId === 'age_prediction'
-          ? undefined
-          : `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
+        maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
+        additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
+        // Add metrics for display
         metrics: apiResult.metrics,
-        cdr: apiResult.cdr,  // for glaucoma detection
-        // Add these for age prediction
-        numericAge: moduleId === 'age_prediction' ? apiResult.predicted_age : undefined,
-        modelName: moduleId === 'age_prediction' ? 'InceptionResnetV2' : undefined
+        cdr: apiResult.cdr  // for glaucoma detection
       };
-
-      // For age prediction, add modelName and numericAge
-      if (moduleId === 'age_prediction') {
-        result.modelName = 'InceptionResnetV2';
-        if (typeof apiResult.predicted_age === 'number') {
-          result.numericAge = apiResult.predicted_age;
-        }
-      }
 
       setAnalysisResult(result);
 
@@ -228,190 +214,12 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
       {/* Results Section */}
       {analysisResult ? (
         <div className="space-y-6">
-          {/* Two-column layout for image and mask or custom info */}
+          {/* Two-column layout for image and mask */}
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Original Image */}
             <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Original Image</h3>
               {selectedImage && (
-<<<<<<< Updated upstream
-                <div className="flex justify-center">
-                  <img 
-                    src={selectedImage} 
-                    alt="Uploaded retinal image" 
-                    className="object-contain rounded-lg"
-                    style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Segmentation Mask or Age Info */}
-            {analysisResult.moduleId === 'age_prediction' ? (
-              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border flex flex-col justify-center items-center">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Output</h3>
-                <div className="space-y-4 text-center">
-                  <div>
-                    <span className="font-semibold text-gray-600">Predicted Numeric Age: </span>
-                    <span className="text-xl font-bold text-primary">{analysisResult.numericAge !== undefined ? analysisResult.numericAge.toFixed(1) : 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-600">Model Name: </span>
-                    <span className="text-primary">{analysisResult.modelName || 'InceptionResnetV2'}</span>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-600">Confidence Level: </span>
-                    <span className="text-primary">{analysisResult.confidence.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // Segmentation Mask for other modules
-              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
-                {analysisResult.maskImage ? (
-                  <div className="flex justify-center">
-                    {analysisResult.moduleId === 'glaucoma_detection' && analysisResult.maskImage ? (
-                      <div className="flex flex-col justify-center items-center h-96">
-                        <img 
-                          src={analysisResult.maskImage} 
-                          alt="Optic cup segmentation mask" 
-                          className="max-w-full max-h-96 object-contain rounded-lg mb-3"
-                        />
-                        <p className="text-sm text-gray-600 text-center max-w-md">
-                          Segmentation shows the <span className="text-red-500 font-semibold">optic cup</span> and 
-                          <span className="text-blue-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
-                        </p>
-                      </div>
-                    ) : (
-                      // For vessel segmentation
-                      <img 
-                        src={analysisResult.maskImage} 
-                        alt="Vessel segmentation mask" 
-                        className="max-w-full max-h-96 object-contain rounded-lg"
-                        style={{ 
-                          aspectRatio: 'auto',
-                          width: 'auto',
-                          height: 'auto'
-                        }}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <XCircle className="h-12 w-12 text-gray-400" />
-                    <span className="ml-2 text-gray-500">No mask available</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Metrics Section */}
-          <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-            <div className="flex items-center space-x-2 mb-4">
-              <BarChart3 className="h-5 w-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-700">Analysis Results</h3>
-            </div>
-
-            {/* Prediction and Confidence */}
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Prediction</p>
-                <p className="text-lg font-semibold text-gray-800">{analysisResult.prediction}</p>
-              </div>
-
-              {/* Confidence or CDR depending on module */}
-              {analysisResult?.moduleId === 'glaucoma_detection' ? (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Confidence Score</p>
-                  <div className="flex items-center space-x-2">
-                    {getConfidenceIcon(analysisResult.confidence)}
-                    <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
-                      {analysisResult.confidence.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Selected Model</p>
-                <p className="text-lg font-semibold text-blue-700">
-                  {analysisResult.details.replace('Dataset: ', '') || 'Unknown'}
-                </p>
-              </div>
-            </div>
-
-            {/* Metrics Grid */}
-            {analysisResult.metrics && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
-                  <p className="text-lg font-bold text-blue-600">
-                    {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Specificity</p>
-                  <p className="text-lg font-bold text-purple-600">
-                    {(analysisResult.metrics.specificity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">F1 Score</p>
-                  <p className="text-lg font-bold text-orange-600">
-                    {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Accuracy</p>
-                  <p className="text-lg font-bold text-red-600">
-                    {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-indigo-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
-                  <p className="text-lg font-bold text-indigo-600">
-                    {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-teal-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">AUC</p>
-                  <p className="text-lg font-bold text-teal-600">
-                    {(analysisResult.metrics.auc * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
-                  <p className="text-lg font-bold text-gray-600">
-                    {analysisResult.details.split(': ')[1] || 'Unknown'}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Warning for low confidence */}
-            {analysisResult.metrics?.dice_coefficient && analysisResult.metrics.dice_coefficient < 0.4 && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                  <span className="text-yellow-800 font-medium">
-                    ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
-                  </span>
-                </div>
-=======
                 analysisResult?.moduleId === 'glaucoma_detection' ? (
                   <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex items-center justify-center">
                     <img
@@ -433,134 +241,164 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               )}
             </div>
 
-            {/* Right column: custom for age prediction, mask for others */}
-            {analysisResult.moduleId === 'age_prediction' ? (
-              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border flex flex-col items-center justify-center space-y-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model & Prediction Details</h3>
-                <div className="w-full flex flex-col items-center space-y-4">
-                  <div className="text-center">
-                    <span className="block text-sm text-gray-500">Selected Model</span>
-                    <span className="text-xl font-bold text-blue-700">{analysisResult.modelName}</span>
-                  </div>
-                  {typeof analysisResult.numericAge === 'number' && (
-                    <div className="text-center">
-                      <span className="block text-sm text-gray-500">Predicted Age</span>
-                      <span className="text-xl font-bold text-green-700">{analysisResult.numericAge.toFixed(1)} years</span>
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <span className="block text-sm text-gray-500">Confidence</span>
-                    <span className="text-xl font-bold text-purple-700">{analysisResult.confidence.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-                <h3 className="text-lg font-semibold text-gray-700 mb-6">Segmentation Mask</h3>
-                {analysisResult.maskImage ? (
-                  analysisResult.moduleId === 'glaucoma_detection' ? (
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex flex-col items-center justify-center">
-                        <img
-                          src={analysisResult.maskImage}
-                          alt="Segmentation mask"
-                          className="w-[480px] h-[480px] rounded-lg shadow-sm"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center">
-                      <img 
-                        src={analysisResult.maskImage} 
-                        alt="Segmentation mask" 
-                        className="object-contain rounded-lg shadow-sm"
-                        style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
+            {/* Segmentation Mask */}
+            <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+              <h3 className="text-lg font-semibold text-gray-700 mb-6">Segmentation Mask</h3>
+              {analysisResult.maskImage ? (
+                analysisResult.moduleId === 'glaucoma_detection' ? (
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex flex-col items-center justify-center">
+                      <img
+                        src={analysisResult.maskImage}
+                        alt="Optic cup segmentation mask"
+                        className="w-[480px] h-[480px] rounded-lg shadow-sm mb-3"
                       />
                     </div>
-                  )
-                ) : (
-                  <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <span className="ml-2 text-gray-500">No mask available</span>
+                    <p className="text-sm text-gray-600 text-center max-w-md mt-4">
+                        Segmentation shows the <span className="text-green-500 font-semibold">optic cup</span> and
+                        <span className="text-red-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
+                    </p>
                   </div>
-                )}
->>>>>>> Stashed changes
+                ) : (
+                  <div className="flex justify-center">
+                    <img 
+                      src={analysisResult.maskImage} 
+                      alt="Vessel segmentation mask" 
+                      className="max-w-full max-h-96 object-contain rounded-lg"
+                      style={{ 
+                        aspectRatio: 'auto',
+                        width: 'auto',
+                        height: 'auto'
+                      }}
+                    />
+                  </div>
+                )
+              ) : (
+                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <XCircle className="h-12 w-12 text-gray-400" />
+                  <span className="ml-2 text-gray-500">No mask available</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Metrics Section */}
+          <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+            <div className="flex items-center space-x-2 mb-4">
+              <BarChart3 className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold text-gray-700">Analysis Results</h3>
+            </div>
+
+            {/* Prediction and Confidence */}
+            <div className={`grid gap-4 mb-6 ${analysisResult?.moduleId === 'glaucoma_detection' ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}>
+              {/* Prediction */}
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-gray-600">Prediction</p>
+                <p className="text-lg font-semibold text-gray-800">{analysisResult.prediction}</p>
+              </div>
+
+              {/* Confidence or CDR */}
+              {analysisResult?.moduleId === 'glaucoma_detection' ? (
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
+                <p className="text-lg font-semibold text-blue-600">
+                  {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600 text-center">Confidence Score</p>
+                <div className="flex items-center space-x-2 justify-center">
+                  {getConfidenceIcon(analysisResult.confidence)}
+                  <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
+                    {analysisResult.confidence.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Selected Model (Vessel Segmentation only) */}
+            {analysisResult?.moduleId !== 'glaucoma_detection' && (
+              <div className="space-y-2 text-center">
+                <p className="text-sm text-gray-600">Selected Model</p>
+                <p className="text-lg font-semibold text-blue-700">
+                  {analysisResult.details?.replace('Dataset: ', '') || 'Unknown'}
+                </p>
               </div>
             )}
           </div>
 
-          {/* Metrics Grid and Warning for non-age-prediction modules only */}
-          {analysisResult.moduleId !== 'age_prediction' && (
-            <>
-              {/* Metrics Grid */}
-              {analysisResult.metrics && (
-                <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Metrics</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
-                      <p className="text-lg font-bold text-blue-600">
-                        {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
-                      <p className="text-lg font-bold text-green-600">
-                        {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-purple-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Specificity</p>
-                      <p className="text-lg font-bold text-purple-600">
-                        {(analysisResult.metrics.specificity * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-orange-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">F1 Score</p>
-                      <p className="text-lg font-bold text-orange-600">
-                        {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-red-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Accuracy</p>
-                      <p className="text-lg font-bold text-red-600">
-                        {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-indigo-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
-                      <p className="text-lg font-bold text-indigo-600">
-                        {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-teal-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">AUC</p>
-                      <p className="text-lg font-bold text-teal-600">
-                        {(analysisResult.metrics.auc * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
-                      <p className="text-lg font-bold text-gray-600">
-                        {analysisResult.details.split(': ')[1] || 'Unknown'}
-                      </p>
-                    </div>
+            {/* Metrics Grid */}
+            {analysisResult.metrics && (
+              // below are static model metrics for vessel segmentation
+              // Heading: Model Metrics
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Specificity</p>
+                    <p className="text-lg font-bold text-purple-600">
+                      {(analysisResult.metrics.specificity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">F1 Score</p>
+                    <p className="text-lg font-bold text-orange-600">
+                      {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-red-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Accuracy</p>
+                    <p className="text-lg font-bold text-red-600">
+                      {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-indigo-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
+                    <p className="text-lg font-bold text-indigo-600">
+                      {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-teal-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">AUC</p>
+                    <p className="text-lg font-bold text-teal-600">
+                      {(analysisResult.metrics.auc * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
+                    <p className="text-lg font-bold text-gray-600">
+                      {analysisResult.details.split(': ')[1] || 'Unknown'}
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Warning for low confidence */}
-              {analysisResult.metrics?.dice_coefficient && analysisResult.metrics.dice_coefficient < 0.4 && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                    <span className="text-yellow-800 font-medium">
-                      ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
-                    </span>
-                  </div>
+            {/* Warning for low confidence */}
+            {analysisResult.metrics?.dice_coefficient && analysisResult.metrics.dice_coefficient < 0.4 && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  <span className="text-yellow-800 font-medium">
+                    ⚠️ The model's prediction confidence is low. Please consider consulting a medical expert.
+                  </span>
                 </div>
-              )}
-            </>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="gradient-card rounded-xl p-8 medical-shadow medical-border text-center">
