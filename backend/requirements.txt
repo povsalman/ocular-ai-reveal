@@ -9,4 +9,8 @@ numpy==1.26.4
 opencv-python==4.10.0.84
 scikit-image==0.25.2
 matplotlib==3.9.1
-scikit-learn==1.5.2 
+scikit-learn==1.5.2
+timm
+xgboost
+pandas
+seaborn

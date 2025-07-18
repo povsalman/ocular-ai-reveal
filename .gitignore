@@ -1,3 +1,25 @@
 myenv
 *.pth
 *.h5
+
+# Ignore Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Ignore Python bytecode and cache
+python/Vessel_Segmentation/__pycache__/
+
+backend/modules/utils/__pycache__/
+backend/modules/models/__pycache__/
+
+
+# Ignore Node.js modules
+node_modules/
+
+frontend/node_modules/
+
+# Ignore package-lock.json
+package-lock.json
+
+
