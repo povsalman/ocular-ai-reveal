@@ -220,36 +220,47 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
             <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Original Image</h3>
               {selectedImage && (
-                <div className="flex justify-center">
-                  <img 
-                    src={selectedImage} 
-                    alt="Uploaded retinal image" 
-                    className="object-contain rounded-lg"
-                    style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
-                  />
-                </div>
+                analysisResult?.moduleId === 'glaucoma_detection' ? (
+                  <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex items-center justify-center">
+                    <img
+                      src={selectedImage}
+                      alt="Uploaded retinal image"
+                      className="w-[480px] h-[480px] rounded-lg shadow-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <img 
+                      src={selectedImage} 
+                      alt="Uploaded retinal image" 
+                      className="object-contain rounded-lg shadow-sm"
+                      style={imageDimensions ? { width: imageDimensions.width, height: imageDimensions.height, maxWidth: '100%', maxHeight: '24rem' } : { maxWidth: '100%', maxHeight: '24rem' }}
+                    />
+                  </div>
+                )
               )}
             </div>
 
             {/* Segmentation Mask */}
             <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-6">Segmentation Mask</h3>
               {analysisResult.maskImage ? (
-                <div className="flex justify-center">
-                  {analysisResult.moduleId === 'glaucoma_detection' && analysisResult.maskImage ? (
-                    <div className="flex flex-col justify-center items-center h-96">
-                      <img 
-                        src={analysisResult.maskImage} 
-                        alt="Optic cup segmentation mask" 
-                        className="max-w-full max-h-96 object-contain rounded-lg mb-3"
+                analysisResult.moduleId === 'glaucoma_detection' ? (
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-[480px] h-[480px] mx-auto bg-gray-50 rounded-lg flex flex-col items-center justify-center">
+                      <img
+                        src={analysisResult.maskImage}
+                        alt="Optic cup segmentation mask"
+                        className="w-[480px] h-[480px] rounded-lg shadow-sm mb-3"
                       />
-                      <p className="text-sm text-gray-600 text-center max-w-md">
-                        Segmentation shows the <span className="text-red-500 font-semibold">optic cup</span> and 
-                        <span className="text-blue-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
-                      </p>
                     </div>
-                  ) : (
-                    // For vessel segmentation
+                    <p className="text-sm text-gray-600 text-center max-w-md mt-4">
+                        Segmentation shows the <span className="text-green-500 font-semibold">optic cup</span> and
+                        <span className="text-red-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
                     <img 
                       src={analysisResult.maskImage} 
                       alt="Vessel segmentation mask" 
@@ -260,8 +271,8 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                         height: 'auto'
                       }}
                     />
-                  )}
-                </div>
+                  </div>
+                )
               ) : (
                 <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
                   <XCircle className="h-12 w-12 text-gray-400" />
@@ -296,8 +307,8 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-gray-600">Confidence Score</p>
-                <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-600 text-center">Confidence Score</p>
+                <div className="flex items-center space-x-2 justify-center">
                   {getConfidenceIcon(analysisResult.confidence)}
                   <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
                     {analysisResult.confidence.toFixed(1)}%
@@ -306,9 +317,9 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               </div>
             )}
 
-            {/* Selected Model (non-glaucoma only) */}
+            {/* Selected Model (Vessel Segmentation only) */}
             {analysisResult?.moduleId !== 'glaucoma_detection' && (
-              <div className="space-y-2">
+              <div className="space-y-2 text-center">
                 <p className="text-sm text-gray-600">Selected Model</p>
                 <p className="text-lg font-semibold text-blue-700">
                   {analysisResult.details?.replace('Dataset: ', '') || 'Unknown'}
@@ -319,54 +330,59 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
 
             {/* Metrics Grid */}
             {analysisResult.metrics && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
-                  <p className="text-lg font-bold text-blue-600">
-                    {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Specificity</p>
-                  <p className="text-lg font-bold text-purple-600">
-                    {(analysisResult.metrics.specificity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">F1 Score</p>
-                  <p className="text-lg font-bold text-orange-600">
-                    {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Accuracy</p>
-                  <p className="text-lg font-bold text-red-600">
-                    {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-indigo-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
-                  <p className="text-lg font-bold text-indigo-600">
-                    {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-teal-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">AUC</p>
-                  <p className="text-lg font-bold text-teal-600">
-                    {(analysisResult.metrics.auc * 100).toFixed(1)}%
-                  </p>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
-                  <p className="text-lg font-bold text-gray-600">
-                    {analysisResult.details.split(': ')[1] || 'Unknown'}
-                  </p>
+              // below are static model metrics for vessel segmentation
+              // Heading: Model Metrics
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Dice Coefficient</p>
+                    <p className="text-lg font-bold text-blue-600">
+                      {(analysisResult.metrics.dice_coefficient * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Sensitivity</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {(analysisResult.metrics.sensitivity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Specificity</p>
+                    <p className="text-lg font-bold text-purple-600">
+                      {(analysisResult.metrics.specificity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">F1 Score</p>
+                    <p className="text-lg font-bold text-orange-600">
+                      {(analysisResult.metrics.f1_score * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-red-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Accuracy</p>
+                    <p className="text-lg font-bold text-red-600">
+                      {(analysisResult.metrics.accuracy * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-indigo-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Jaccard Similarity</p>
+                    <p className="text-lg font-bold text-indigo-600">
+                      {(analysisResult.metrics.jaccard_similarity * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-teal-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">AUC</p>
+                    <p className="text-lg font-bold text-teal-600">
+                      {(analysisResult.metrics.auc * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Dataset Used</p>
+                    <p className="text-lg font-bold text-gray-600">
+                      {analysisResult.details.split(': ')[1] || 'Unknown'}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

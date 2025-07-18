@@ -234,6 +234,46 @@ class MultiDatasetVesselModel:
             orig_shape = image.size[::-1]
         else:
             orig_shape = image.shape[:2]
+
+        # --- Fast path: check for exact dataset shape match ---
+        dataset_shape_map = {
+            'HRF': [(2336, 3504), (3504, 2336)],
+            'CHASEDB1': [(960, 999), (999, 960)],
+            'STARE': [(605, 700), (700, 605)],
+            'DRIVE': [(584, 565), (565, 584)],
+        }
+        matched_dataset = None
+        for dataset, shapes in dataset_shape_map.items():
+            if orig_shape in shapes:
+                matched_dataset = dataset
+                break
+        if matched_dataset is not None and matched_dataset in self.models:
+            # Only run the matched model
+            model = self.models[matched_dataset]
+            try:
+                processed, green_channel = self.preprocess_for_dataset(image, matched_dataset)
+                _, fov_mask = cv2.threshold(green_channel, 10, 1, cv2.THRESH_BINARY)
+                fov_mask = cv2.erode(fov_mask, np.ones((5,5), np.uint8), iterations=1)
+                fov_mask = fov_mask.astype(np.float32)
+                pred_mask = self.patch_predict_reconstruct(model, processed, orig_shape, fov_mask=fov_mask)
+                pred_mask = np.nan_to_num(pred_mask, nan=0.0, posinf=0.0, neginf=0.0)
+                p = np.clip(pred_mask, eps, 1 - eps)
+                entropy = - (p * np.log2(p) + (1 - p) * np.log2(1 - p))
+                avg_entropy = float(np.mean(entropy)) if np.isfinite(entropy).all() else 1.0
+                confidence = 1 - (avg_entropy / 1.0)
+                binary_mask = (pred_mask > 0.5).astype(np.uint8) * 255
+                logger.info(f"{matched_dataset} (fast path) confidence: {confidence:.4f} (avg_entropy={avg_entropy:.4f}) NaN in mask: {np.isnan(pred_mask).any()}")
+                result = {
+                    'confidence': float(confidence),
+                    'mask': binary_mask,
+                    'dataset_used': matched_dataset
+                }
+                return [(matched_dataset, result)]
+            except Exception as e:
+                logger.error(f"Error predicting with {matched_dataset} model (fast path): {e}")
+                # If error, fall through to slow path
+
+        # --- Slow path: run all models and pick best (existing logic) ---
         fov_masks = {}
         for dataset, model in self.models.items():
             try:
@@ -259,37 +299,6 @@ class MultiDatasetVesselModel:
                 results.append((dataset, result))
             except Exception as e:
                 logger.error(f"Error predicting with {dataset} model: {e}")
-        
-        # Overrides to force model selection for best masks on frontend based on img resolution
-        # HRF shape override
-        if (orig_shape == (2336, 3504)) or (orig_shape == (3504, 2336)):
-            for dataset, result in results:
-                if dataset.upper() == 'HRF':
-                    logger.info("HRF shape detected, forcing HRF model selection.")
-                    return [(dataset, result)]
-
-        # CHASEDB1 shape override
-        if (orig_shape == (960, 999)) or (orig_shape == (999, 960)):
-            for dataset, result in results:
-                if dataset.upper() == 'CHASEDB1':
-                    logger.info("CHASEDB1 shape detected, forcing CHASEDB1 model selection.")
-                    return [(dataset, result)]
-                    
-        # STARE shape override
-        if (orig_shape == (605, 700)) or (orig_shape == (700, 605)):
-            for dataset, result in results:
-                if dataset.upper() == 'STARE':
-                    logger.info("STARE shape detected, forcing STARE model selection.")
-                    return [(dataset, result)]
-                    
-        # DRIVE shape override
-        if (orig_shape == (584, 565)) or (orig_shape == (565, 584)):
-            for dataset, result in results:
-                if dataset.upper() == 'DRIVE':
-                    logger.info("DRIVE shape detected, forcing DRIVE model selection.")
-                    return [(dataset, result)]
-
-
         return results
     
     def select_best_prediction(self, results: List[Tuple[str, Dict[str, Any]]]) -> Tuple[str, Dict[str, Any]]:

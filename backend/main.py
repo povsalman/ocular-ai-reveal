@@ -183,7 +183,10 @@ async def predict(
             response["model_used"] = result.get("model_used")
             response["all_probabilities"] = result.get("all_probabilities")
 
-        
+        # Myopia Detection, add features for myopia if present
+        if model_type == 'myopia' and "features" in result:
+            response["features"] = result["features"]
+
         # Add dataset information for vessel segmentation
         if model_type == 'vessel' and "dataset_used" in result:
             response["dataset_used"] = result["dataset_used"]
@@ -201,6 +204,9 @@ async def predict(
                 response["mask_image"] = encode_mask_to_base64(result["mask"])
 
         return JSONResponse(content=response)
+
+
+
 
     except Exception as e:
         logger.error(f"Prediction error: {e}")
