@@ -263,7 +263,7 @@ Due to GitHub's file size restrictions, model files are not included in the repo
 To enable DR classification:
 
 1. **Download the model files** from the following Google Drive folder:
-   📎 **[Download DR Models](https://drive.google.com/drive/folder/your-model-folder-link)**
+   📎 **[Download DR Models](https://drive.google.com/drive/folders/1HZ0aZblCraztVov_o9V3EM0rvR8aXCrT?usp=sharing)**
 
 2. **Place the models** in the following directory structure inside your backend:
 
