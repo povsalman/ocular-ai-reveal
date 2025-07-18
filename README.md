@@ -252,11 +252,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-##  Diabetic Retinopathy (DR) Classification
+## Diabetic Retinopathy (DR) Classification
 
 The **DR Classification** module uses two state-of-the-art deep learning models — **DenseNet** and a **Vision Transformer (ViT)** — to classify the severity of diabetic retinopathy from retinal fundus images.
 
-###  Folder Structure & Setup
+### Folder Structure & Setup
 
 Due to GitHub's file size restrictions, model files are not included in the repository.
 
@@ -275,20 +275,20 @@ backend/
         └── vit.pth                  # PyTorch Vision Transformer model
 ```
 
->  The folder must be named `dr_models` exactly and placed under `backend/models/`.
+> The folder must be named `dr_models` exactly and placed under `backend/models/`.
 
 ---
 
-###  How It Works
+### How It Works
 
-* The system takes a **retinal fundus image** as input.
-* Both models make predictions independently.
-* The prediction with the **higher confidence score** is selected as the final result.
-* A **Grad-CAM heatmap** is generated to visually explain which regions of the retina influenced the prediction.
+- The system takes a **retinal fundus image** as input.
+- Both models make predictions independently.
+- The prediction with the **higher confidence score** is selected as the final result.
+- A **Grad-CAM heatmap** is generated to visually explain which regions of the retina influenced the prediction.
 
 ---
 
-###  DR Classification Stages
+### DR Classification Stages
 
 | Stage                | Description                                                                         |
 | -------------------- | ----------------------------------------------------------------------------------- |
@@ -300,18 +300,18 @@ backend/
 
 ---
 
-###  Grad-CAM Explanation
+### Grad-CAM Explanation
 
 The Grad-CAM visualization highlights the regions of the retinal image that contributed most to the model's decision:
 
-* 🔴 **Bright red/yellow regions**: High attention areas
-* 🔵 **Cooler or dark regions**: Low attention areas
+- 🔴 **Bright red/yellow regions**: High attention areas
+- 🔵 **Cooler or dark regions**: Low attention areas
 
 This helps users and practitioners understand why a certain prediction was made.
 
 ---
 
-###  Example Workflow
+### Example Workflow
 
 1. Navigate to `http://localhost:3000`
 2. Click on **"DR Classification"**
@@ -319,11 +319,11 @@ This helps users and practitioners understand why a certain prediction was made.
 4. Click **"Start Analysis"**
 5. View:
 
-   * Predicted **DR stage**
-   * **Confidence score** of the prediction
-   * Model used (DenseNet or ViT)
-   * **Grad-CAM heatmap** for model interpretability
-   * Textual explanation for the predicted DR stage
+   - Predicted **DR stage**
+   - **Confidence score** of the prediction
+   - Model used (DenseNet or ViT)
+   - **Grad-CAM heatmap** for model interpretability
+   - Textual explanation for the predicted DR stage
 
 ---
 
@@ -331,8 +331,8 @@ This helps users and practitioners understand why a certain prediction was made.
 
 #### POST `/predict/`
 
-* `file`: Image file
-* `model_type`: `"dr"`
+- `file`: Image file
+- `model_type`: `"dr"`
 
 **Response Format:**
 
@@ -348,7 +348,7 @@ This helps users and practitioners understand why a certain prediction was made.
 
 ---
 
-###  Model Details
+### Model Details
 
 | Model                    | Framework        | Type              | Description                                       |
 | ------------------------ | ---------------- | ----------------- | ------------------------------------------------- |
@@ -357,14 +357,13 @@ This helps users and practitioners understand why a certain prediction was made.
 
 ---
 
-###  Expected Results
+### Expected Results
 
-* For clear fundus images, confidence scores ≥ 80% are expected.
-* For low-quality or blurry images, confidence may drop and users may be shown a warning.
-* Grad-CAM is available for most successful predictions to improve interpretability.
+- For clear fundus images, confidence scores ≥ 80% are expected.
+- For low-quality or blurry images, confidence may drop and users may be shown a warning.
+- Grad-CAM is available for most successful predictions to improve interpretability.
 
 ---
-
 
 ## 📞 Support
 
@@ -374,7 +373,6 @@ For support, please open an issue on GitHub or contact the development team.
 
 **Note**: This application is for research and educational purposes. Medical decisions should always be made by qualified healthcare professionals.
 
-
 Read file: frontend/README.md
 Read file: backend/README.md
 Read file: backend/requirements.txt
@@ -383,9 +381,6 @@ Read file: backend/models/myopia_model.py
 Here is a sample README file for the **Myopia Detection** module, covering setup, libraries, API, and troubleshooting:
 
 ---
-
-
-
 
 # 👁️ Myopia Detection Module
 
@@ -400,6 +395,7 @@ This module provides AI-powered myopia risk assessment and feature analysis from
 ### 🐍 Backend
 
 1. **Install Python dependencies:**
+
    ```bash
    cd backend
    python -m venv venv
@@ -412,6 +408,7 @@ This module provides AI-powered myopia risk assessment and feature analysis from
    ```
 
 2. **Ensure model files are present:**
+
    - Place the following files in `python/Myopia Detection/`:
      - `enhanced_myopia_model.pkl`
      - `scaler.pkl`
@@ -428,6 +425,7 @@ This module provides AI-powered myopia risk assessment and feature analysis from
 ### ⚛️ Frontend
 
 1. **Install Node.js dependencies:**
+
    ```bash
    cd frontend
    npm install
@@ -496,7 +494,7 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
   "features": {
     "avg_vessel_length": 32.23,
     "vessel_length_std": 15.94,
-    "max_vessel_length": 87.20
+    "max_vessel_length": 87.2
   }
 }
 ```
@@ -505,20 +503,23 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
 
 ## 🛠️ Troubleshooting
 
-- **⚪ White screen on frontend:**  
+- **⚪ White screen on frontend:**
+
   - Ensure all required files (especially `ModuleAnalysis.tsx` or `ModuleAnalysisMyopia.tsx`) exist and are correctly imported.
   - Check the browser console for errors.
   - Restart the frontend after any file changes.
 
-- **🐍 Backend errors:**  
+- **🐍 Backend errors:**
+
   - Check that all model files are present in `python/Myopia Detection/`.
   - Ensure the virtual environment is activated and dependencies are installed.
   - Check the backend terminal for error logs.
 
-- **🌐 CORS errors:**  
+- **🌐 CORS errors:**
+
   - Make sure the backend allows requests from your frontend URL (see CORS settings in `main.py`).
 
-- **🔗 API not responding:**  
+- **🔗 API not responding:**
   - Confirm the backend is running and accessible at the correct port.
 
 ---
@@ -527,10 +528,8 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
 
 - The clinical summary and key features are displayed with up to 2 decimal points for clarity.
 - For development, both frontend and backend must be running simultaneously.
+
 ---
-
-
-
 
 # 🧓 Retinal Age Prediction Module
 
@@ -552,6 +551,7 @@ This module follows the same **FastAPI + React** architecture as the rest of the
    ```
    backend/models/age_models/age_model.pth
    ```
+
    Available for download at: https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing
 
 2. **Install Python dependencies**:
@@ -601,18 +601,18 @@ This module follows the same **FastAPI + React** architecture as the rest of the
 
 The following libraries are required for the Age Prediction module (included in `requirements.txt`):
 
-* `torch` (PyTorch)
-* `timm` (for InceptionResNetV2 model)
-* `Pillow` (image handling)
-* `numpy` (array operations)
-* `torchvision.transforms` (image preprocessing)
-* `fastapi`, `uvicorn` (API development)
-* `logging`, `typing` (standard library utilities)
+- `torch` (PyTorch)
+- `timm` (for InceptionResNetV2 model)
+- `Pillow` (image handling)
+- `numpy` (array operations)
+- `torchvision.transforms` (image preprocessing)
+- `fastapi`, `uvicorn` (API development)
+- `logging`, `typing` (standard library utilities)
 
 #### Frontend
 
-* `React`, `Tailwind CSS`, `shadcn/ui`
-* Part of the existing unified React/Vite frontend
+- `React`, `Tailwind CSS`, `shadcn/ui`
+- Part of the existing unified React/Vite frontend
 
 ---
 
@@ -648,12 +648,12 @@ curl -X POST -F "file=@your_image.jpg" -F "model_type=age" http://localhost:8000
 
 ### 🧠 Model Details
 
-* **Architecture**: InceptionResNetV2 (via `timm`)
-* **Input**: 299x299 RGB image
-* **Output**: Continuous predicted age (float)
-* **Preprocessing**: Resize, normalize, convert to tensor
-* **Loss Function**: Mean Squared Error during training
-* **Inference**: Optimized for CPU; <5s per image
+- **Architecture**: InceptionResNetV2 (via `timm`)
+- **Input**: 299x299 RGB image
+- **Output**: Continuous predicted age (float)
+- **Preprocessing**: Resize, normalize, convert to tensor
+- **Loss Function**: Mean Squared Error during training
+- **Inference**: Optimized for CPU; <5s per image
 
 ---
 
@@ -669,27 +669,26 @@ curl -X POST -F "file=@your_image.jpg" -F "model_type=age" http://localhost:8000
 
 ### 🛠️ Troubleshooting
 
-* **Backend doesn’t predict**:
+- **Backend doesn’t predict**:
 
-  * Ensure `age_model.pth` exists at `https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing`
-  * Verify all dependencies are installed (especially `torch` and `timm`)
+  - Ensure `age_model.pth` exists at `https://drive.google.com/drive/folders/1w3WJFu4v93rpW5hcrBKfmDq9QukJgcFL?usp=sharing`
+  - Verify all dependencies are installed (especially `torch` and `timm`)
 
-* **Frontend blank or broken**:
+- **Frontend blank or broken**:
 
-  * Ensure `ModuleAnalysisAge.tsx` exists and is routed
-  * Check console for import errors or missing components
+  - Ensure `ModuleAnalysisAge.tsx` exists and is routed
+  - Check console for import errors or missing components
 
-* **CORS issues**:
+- **CORS issues**:
 
-  * Ensure FastAPI is configured with proper CORS middleware
+  - Ensure FastAPI is configured with proper CORS middleware
 
-* **Low confidence predictions**:
+- **Low confidence predictions**:
 
-  * Recommend using high-resolution, centered fundus images
+  - Recommend using high-resolution, centered fundus images
 
 ---
 
 ### 🔍 Integration Note
 
 This module plugs into the unified `/predict/` API using `model_type: "age"`, following the same interface and workflow as the other modules.
-
