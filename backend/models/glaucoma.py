@@ -128,7 +128,7 @@ classifier_head = nn.Sequential(
 )
 
 # Load saved weights
-checkpoint = torch.load("/Users/Adeena/Downloads/best_model1.pth", map_location="cpu")
+checkpoint = torch.load("models/glaucoma_models/best_model1.pth", map_location="cpu")
 feature_extractor.load_state_dict(checkpoint["feature_extractor"])
 classifier_head.load_state_dict(checkpoint["classifier_head"])
 
