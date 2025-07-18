@@ -19,5 +19,5 @@ export interface AnalysisResult {
     jaccard_similarity: number;
     auc: number;
   };
-  features?: Record<string, number | string>;
+  cdr?: number; // Cup-to-disc ratio for glaucoma detection 
 }

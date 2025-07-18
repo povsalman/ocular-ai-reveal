@@ -31,6 +31,7 @@ interface APIResponse {
   dataset_used?: string;
   metrics?: APIMetrics;
   mask_image?: string;
+  cdr?: number; // For glaucoma detection
 }
 
 const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
@@ -141,7 +142,8 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
         additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
         // Add metrics for display
-        metrics: apiResult.metrics
+        metrics: apiResult.metrics,
+        cdr: apiResult.cdr  // for glaucoma detection
       };
 
       setAnalysisResult(result);
@@ -234,16 +236,31 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
               {analysisResult.maskImage ? (
                 <div className="flex justify-center">
-                  <img 
-                    src={analysisResult.maskImage} 
-                    alt="Vessel segmentation mask" 
-                    className="max-w-full max-h-96 object-contain rounded-lg"
-                    style={{ 
-                      aspectRatio: 'auto',
-                      width: 'auto',
-                      height: 'auto'
-                    }}
-                  />
+                  {analysisResult.moduleId === 'glaucoma_detection' && analysisResult.maskImage ? (
+                    <div className="flex flex-col justify-center items-center h-96">
+                      <img 
+                        src={analysisResult.maskImage} 
+                        alt="Optic cup segmentation mask" 
+                        className="max-w-full max-h-96 object-contain rounded-lg mb-3"
+                      />
+                      <p className="text-sm text-gray-600 text-center max-w-md">
+                        Segmentation shows the <span className="text-red-500 font-semibold">optic cup</span> and 
+                        <span className="text-blue-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
+                      </p>
+                    </div>
+                  ) : (
+                    // For vessel segmentation
+                    <img 
+                      src={analysisResult.maskImage} 
+                      alt="Vessel segmentation mask" 
+                      className="max-w-full max-h-96 object-contain rounded-lg"
+                      style={{ 
+                        aspectRatio: 'auto',
+                        width: 'auto',
+                        height: 'auto'
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -267,15 +284,26 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
                 <p className="text-sm text-gray-600">Prediction</p>
                 <p className="text-lg font-semibold text-gray-800">{analysisResult.prediction}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Confidence Score</p>
-                <div className="flex items-center space-x-2">
-                  {getConfidenceIcon(analysisResult.confidence)}
-                  <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
-                    {analysisResult.confidence.toFixed(1)}%
-                  </span>
+
+              {/* Confidence or CDR depending on module */}
+              {analysisResult?.moduleId === 'glaucoma_detection' ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
+                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Confidence Score</p>
+                  <div className="flex items-center space-x-2">
+                    {getConfidenceIcon(analysisResult.confidence)}
+                    <span className={`text-xl font-bold ${getConfidenceColor(analysisResult.confidence)}`}>
+                      {analysisResult.confidence.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Selected Model</p>
                 <p className="text-lg font-semibold text-blue-700">
