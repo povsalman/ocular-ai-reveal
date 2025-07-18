@@ -1,25 +1,34 @@
-myenv
-*.pth
-*.h5
+# Python environments
+myenv/
+.env/
+.venv/
+venv/
+ENV/
 
-# Ignore Python bytecode and cache
+# Python bytecode and cache
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *.pyo
 
-# Ignore Python bytecode and cache
-python/Vessel_Segmentation/__pycache__/
+# Ignore all .pth and .h5 files everywhere
+*.pth
+*.h5
 
-backend/modules/utils/__pycache__/
-backend/modules/models/__pycache__/
-
-
-# Ignore Node.js modules
+# Node.js modules
 node_modules/
-
 frontend/node_modules/
+**/node_modules/
 
 # Ignore package-lock.json
 package-lock.json
+
+# VSCode and IDE settings
+.vscode/
+.idea/
+
+# MacOS and system files
+.DS_Store
+Thumbs.db
 
 
