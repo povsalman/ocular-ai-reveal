@@ -20,4 +20,6 @@ export interface AnalysisResult {
     auc: number;
   };
   cdr?: number; // Cup-to-disc ratio for glaucoma detection 
+  numericAge?: number; // Numeric age for age prediction
+  modelName?: string; // Model name for display
 }

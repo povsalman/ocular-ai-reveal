@@ -32,6 +32,7 @@ interface APIResponse {
   metrics?: APIMetrics;
   mask_image?: string;
   cdr?: number; // For glaucoma detection
+  predicted_age?: number; // For age prediction
 }
 
 const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
@@ -139,11 +140,16 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
         confidence: apiResult.confidence * 100, // Convert to percentage
         details: `Dataset: ${apiResult.dataset_used || 'Unknown'}`,
         riskLevel: mapRiskLevel(apiResult.confidence * 100),
-        maskImage: apiResult.mask_image ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
-        additionalInfo: `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
-        // Add metrics for display
+        // Only set maskImage for modules that use it
+        maskImage: (moduleId !== 'age_prediction' && apiResult.mask_image) ? `data:image/png;base64,${apiResult.mask_image}` : undefined,
+        additionalInfo: moduleId === 'age_prediction'
+          ? undefined
+          : `Our vessel segmentation model uses the R2UNet architecture, specifically designed for biomedical image segmentation. This model provides precise pixel-level segmentation of retinal blood vessels, enabling detailed vascular analysis and pathology detection.`,
         metrics: apiResult.metrics,
-        cdr: apiResult.cdr  // for glaucoma detection
+        cdr: apiResult.cdr,  // for glaucoma detection
+        // Add these for age prediction
+        numericAge: moduleId === 'age_prediction' ? apiResult.predicted_age : undefined,
+        modelName: moduleId === 'age_prediction' ? 'InceptionResnetV2' : undefined
       };
 
       setAnalysisResult(result);
@@ -231,44 +237,65 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               )}
             </div>
 
-            {/* Segmentation Mask */}
-            <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
-              {analysisResult.maskImage ? (
-                <div className="flex justify-center">
-                  {analysisResult.moduleId === 'glaucoma_detection' && analysisResult.maskImage ? (
-                    <div className="flex flex-col justify-center items-center h-96">
+            {/* Segmentation Mask or Age Info */}
+            {analysisResult.moduleId === 'age_prediction' ? (
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border flex flex-col justify-center items-center">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Model Output</h3>
+                <div className="space-y-4 text-center">
+                  <div>
+                    <span className="font-semibold text-gray-600">Predicted Numeric Age: </span>
+                    <span className="text-xl font-bold text-primary">{analysisResult.numericAge !== undefined ? analysisResult.numericAge.toFixed(1) : 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600">Model Name: </span>
+                    <span className="text-primary">{analysisResult.modelName || 'InceptionResnetV2'}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-600">Confidence Level: </span>
+                    <span className="text-primary">{analysisResult.confidence.toFixed(1)}%</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Segmentation Mask for other modules
+              <div className="gradient-card rounded-xl p-6 medical-shadow medical-border">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Segmentation Mask</h3>
+                {analysisResult.maskImage ? (
+                  <div className="flex justify-center">
+                    {analysisResult.moduleId === 'glaucoma_detection' && analysisResult.maskImage ? (
+                      <div className="flex flex-col justify-center items-center h-96">
+                        <img 
+                          src={analysisResult.maskImage} 
+                          alt="Optic cup segmentation mask" 
+                          className="max-w-full max-h-96 object-contain rounded-lg mb-3"
+                        />
+                        <p className="text-sm text-gray-600 text-center max-w-md">
+                          Segmentation shows the <span className="text-red-500 font-semibold">optic cup</span> and 
+                          <span className="text-blue-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
+                        </p>
+                      </div>
+                    ) : (
+                      // For vessel segmentation
                       <img 
                         src={analysisResult.maskImage} 
-                        alt="Optic cup segmentation mask" 
-                        className="max-w-full max-h-96 object-contain rounded-lg mb-3"
+                        alt="Vessel segmentation mask" 
+                        className="max-w-full max-h-96 object-contain rounded-lg"
+                        style={{ 
+                          aspectRatio: 'auto',
+                          width: 'auto',
+                          height: 'auto'
+                        }}
                       />
-                      <p className="text-sm text-gray-600 text-center max-w-md">
-                        Segmentation shows the <span className="text-red-500 font-semibold">optic cup</span> and 
-                        <span className="text-blue-500 font-semibold"> optic disc</span> used to compute the Cup-to-Disc Ratio (CDR).
-                      </p>
-                    </div>
-                  ) : (
-                    // For vessel segmentation
-                    <img 
-                      src={analysisResult.maskImage} 
-                      alt="Vessel segmentation mask" 
-                      className="max-w-full max-h-96 object-contain rounded-lg"
-                      style={{ 
-                        aspectRatio: 'auto',
-                        width: 'auto',
-                        height: 'auto'
-                      }}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <XCircle className="h-12 w-12 text-gray-400" />
-                  <span className="ml-2 text-gray-500">No mask available</span>
-                </div>
-              )}
-            </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <XCircle className="h-12 w-12 text-gray-400" />
+                    <span className="ml-2 text-gray-500">No mask available</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Metrics Section */}
