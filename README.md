@@ -373,3 +373,159 @@ For support, please open an issue on GitHub or contact the development team.
 ---
 
 **Note**: This application is for research and educational purposes. Medical decisions should always be made by qualified healthcare professionals.
+
+
+Read file: frontend/README.md
+Read file: backend/README.md
+Read file: backend/requirements.txt
+Read file: frontend/package.json
+Read file: backend/models/myopia_model.py
+Here is a sample README file for the **Myopia Detection** module, covering setup, libraries, API, and troubleshooting:
+
+---
+
+# Myopia Detection Module
+
+## Overview
+
+This module provides AI-powered myopia risk assessment and feature analysis from retinal fundus images. It consists of a React frontend and a FastAPI backend, with a machine learning model for myopia detection and feature extraction.
+
+---
+
+## How to Run
+
+### Backend
+
+1. **Install Python dependencies:**
+   ```bash
+   cd backend
+   python -m venv venv
+   # Activate the virtual environment:
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. **Ensure model files are present:**
+   - Place the following files in `python/Myopia Detection/`:
+     - `enhanced_myopia_model.pkl`
+     - `scaler.pkl`
+     - `pca.pkl`
+     - `feature_names.pkl`
+
+3. **Run the backend server:**
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+   - The API will be available at [http://localhost:8000](http://localhost:8000)
+   - API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Frontend
+
+1. **Install Node.js dependencies:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Run the frontend:**
+   ```bash
+   npm run dev
+   ```
+   - The app will be available at [http://localhost:5173](http://localhost:5173) (or as shown in your terminal)
+
+---
+
+## Libraries Used
+
+### Backend
+
+- **fastapi**: API framework
+- **uvicorn**: ASGI server
+- **numpy, opencv-python, scikit-image**: Image processing
+- **scikit-learn**: ML preprocessing and PCA
+- **tensorflow, torch**: Deep learning (for other modules)
+- **pillow**: Image handling
+
+See `backend/requirements.txt` for full list.
+
+### Frontend
+
+- **React**: UI framework
+- **Vite**: Build tool
+- **Tailwind CSS**: Styling
+- **shadcn-ui**: UI components
+- **recharts**: Data visualization
+- **react-markdown**: Markdown rendering
+- **react-router-dom**: Routing
+
+See `frontend/package.json` for full list.
+
+---
+
+## API
+
+### Endpoint
+
+**POST** `/predict/`
+
+#### Parameters
+
+- `file`: Retinal fundus image (PNG, JPG, JPEG)
+- `model_type`: `"myopia"`
+
+#### Example Request (using `curl`)
+
+```bash
+curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8000/predict/
+```
+
+#### Example Response
+
+```json
+{
+  "status": "success",
+  "predicted_class": "High Myopia Risk",
+  "confidence": 0.92,
+  "model_type": "myopia",
+  "features": {
+    "avg_vessel_length": 32.23,
+    "vessel_length_std": 15.94,
+    "max_vessel_length": 87.20,
+    ...
+  }
+}
+```
+
+---
+
+## Troubleshooting
+
+- **White screen on frontend:**  
+  - Ensure all required files (especially `ModuleAnalysis.tsx` or `ModuleAnalysisMyopia.tsx`) exist and are correctly imported.
+  - Check the browser console for errors.
+  - Restart the frontend after any file changes.
+
+- **Backend errors:**  
+  - Check that all model files are present in `python/Myopia Detection/`.
+  - Ensure the virtual environment is activated and dependencies are installed.
+  - Check the backend terminal for error logs.
+
+- **CORS errors:**  
+  - Make sure the backend allows requests from your frontend URL (see CORS settings in `main.py`).
+
+- **API not responding:**  
+  - Confirm the backend is running and accessible at the correct port.
+
+---
+
+## Additional Notes
+
+- The clinical summary and key features are displayed with up to 2 decimal points for clarity.
+- Feature names in the UI use the `*_length` convention (e.g., `avg_vessel_length`).
+- For development, both frontend and backend must be running simultaneously.
+
+---
+
