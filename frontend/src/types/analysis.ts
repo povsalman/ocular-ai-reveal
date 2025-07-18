@@ -18,4 +18,5 @@ export interface AnalysisResult {
     jaccard_similarity: number;
     auc: number;
   };
+  cdr?: number; // Cup-to-disc ratio for glaucoma detection 
 }

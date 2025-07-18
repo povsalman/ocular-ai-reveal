@@ -250,6 +250,111 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **UI Framework**: Built with React, TypeScript, and Tailwind CSS
 - **Backend**: FastAPI for high-performance API development
 
+Thanks for the clarification! Here’s the updated README-style description for Glaucoma Segmentation and Detection, now with the correct segmentation colors:
+
+⸻
+
+## 👁️ Glaucoma Segmentation and Detection
+
+The Glaucoma Detection module combines a U-Net-based segmentation model with a DenseNet201 classifier to analyze retinal fundus images for signs of glaucoma.
+
+⸻
+
+### Folder Structure & Setup
+
+To enable glaucoma segmentation and classification:
+	1.	Download the model files from the following Google Drive folder:
+📎 Download Glaucoma Models
+	2.	Place the models in the following directory inside your backend:
+
+backend/
+└── models/
+    └── glaucoma_models/
+        ├── segmentation_unet.pth        # U-Net for optic disc/cup segmentation
+        └── best_model1.pth              # DenseNet201 + custom head for glaucoma classification
+
+The folder must be named glaucoma_models and placed under backend/models/.
+
+⸻
+
+### How It Works
+	•	A retinal fundus image is uploaded by the user.
+	•	The U-Net segmentation model detects:
+	•	Optic Disc (label 1)
+	•	Optic Cup (label 2)
+	•	From this segmentation, the Cup-to-Disc Ratio (CDR) is computed:
+	•	$$ \text{CDR} = \frac{\text{Cup Area}}{\text{Disc Area}} $$
+	•	The segmented Region of Interest (ROI) is extracted.
+	•	The DenseNet201 classifier receives the ROI and CDR as input to predict glaucoma presence.
+	•	The final output includes:
+	•	Predicted class
+	•	Confidence score
+	•	CDR value
+	•	Segmentation mask
+
+⸻
+
+### Segmentation Labels
+
+
+| Region      | Label | Color Example |
+|-------------|--------|----------------|
+| Optic Disc  | 1      | 🔴 Red         |
+| Optic Cup   | 2      | 🟢 Green       |
+
+⸻
+
+### CDR Threshold Interpretation
+
+| CDR Value Range | Interpretation                     |
+|------------------|------------------------------------|
+| 0.1 – 0.5        | Normal                             |
+| > 0.5 – 0.6      | Borderline / Clinical review       |
+| > 1.0            | High risk of glaucoma              |
+
+⸻
+
+### Example Workflow
+	1.	Go to http://localhost:3000
+	2.	Click on “Glaucoma Detection”
+	3.	Upload a retinal image
+	4.	Click “Start Analysis”
+	5.	View:
+	•	Segmentation mask
+	•	CDR ratio
+	•	Final classification result
+
+⸻
+
+### API Support for Glaucoma Detection
+
+Endpoint:
+
+POST /predict/
+
+Payload:
+	•	file: Image file
+	•	model_type: "glaucoma"
+
+Response Format:
+
+{
+  "status": "success",
+  "predicted_class": "Glaucoma Detected",
+  "cdr": 0.65,
+  "mask": "<base64_encoded_mask>"
+}
+
+
+⸻
+
+### Model Details
+
+| Model                    | Framework | Type          | Description                                                                 |
+|--------------------------|-----------|---------------|-----------------------------------------------------------------------------|
+| U-Net                    | PyTorch   | Segmentation  | Detects optic disc (red) and cup (green) regions from retinal images        |
+| DenseNet201 + CDR Head   | PyTorch   | Classification| Predicts glaucoma using the cropped ROI and cup-to-disc ratio (CDR)         |
+
 ## 📞 Support
 
 For support, please open an issue on GitHub or contact the development team.
