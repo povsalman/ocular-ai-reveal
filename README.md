@@ -526,7 +526,6 @@ curl -X POST -F "file=@your_image.png" -F "model_type=myopia" http://localhost:8
 ## 📝 Additional Notes
 
 - The clinical summary and key features are displayed with up to 2 decimal points for clarity.
-- Feature names in the UI use the `*_length` convention (e.g., `avg_vessel_length`).
 - For development, both frontend and backend must be running simultaneously.
 ---
 
