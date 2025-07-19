@@ -365,23 +365,6 @@ This helps users and practitioners understand why a certain prediction was made.
 
 ---
 
-## 📞 Support
-
-For support, please open an issue on GitHub or contact the development team.
-
----
-
-**Note**: This application is for research and educational purposes. Medical decisions should always be made by qualified healthcare professionals.
-
-Read file: frontend/README.md
-Read file: backend/README.md
-Read file: backend/requirements.txt
-Read file: frontend/package.json
-Read file: backend/models/myopia_model.py
-Here is a sample README file for the **Myopia Detection** module, covering setup, libraries, API, and troubleshooting:
-
----
-
 # 👁️ Myopia Detection Module
 
 ## 📝 Overview
@@ -692,3 +675,134 @@ curl -X POST -F "file=@your_image.jpg" -F "model_type=age" http://localhost:8000
 ### 🔍 Integration Note
 
 This module plugs into the unified `/predict/` API using `model_type: "age"`, following the same interface and workflow as the other modules.
+
+
+## Glaucoma Segmentation and Detection
+
+The Glaucoma Detection module combines a **U-Net-based segmentation model** with a **DenseNet201 classifier** to analyze retinal fundus images for signs of glaucoma.
+
+---
+
+### Folder Structure & Setup
+
+To enable glaucoma segmentation and classification:
+
+1. **Download the model files** from the following Google Drive folder:  
+📎 **Download Glaucoma Models**
+
+2. **Place the models** in the following directory inside your backend:
+
+```
+backend/
+└── models/
+    └── glaucoma_models/
+        ├── best_model1.pth          # DenseNet model for classification
+        └── unet_origa2.pth          # Unet segmentation model
+```
+
+> The folder must be named `glaucoma_models` exactly and placed under `backend/models/`.
+
+---
+
+### How It Works
+
+- A retinal fundus image is uploaded by the user.
+- The **U-Net segmentation model** detects:
+  - **Optic Disc** (label 1)
+  - **Optic Cup** (label 2)
+- From this segmentation, the **Cup-to-Disc Ratio (CDR)** is computed:  
+
+CDR = Cup Area / Disc Area
+
+- The segmented **Region of Interest (ROI)** is extracted.
+- The **DenseNet201 classifier** receives the ROI and CDR as input to predict glaucoma presence.
+- The final output includes:
+- Predicted class
+- CDR value
+- Segmentation mask
+
+---
+
+### Segmentation Labels
+
+| Region      | Label | Color  |
+|-------------|-------|--------|
+| Optic Disc  | 1     | 🔴 Red |
+| Optic Cup   | 2     | 🟢 Green |
+
+---
+
+### CDR Threshold Interpretation
+
+| CDR Value Range | Interpretation                |
+|------------------|------------------------------|
+| 0.1 – 0.5        | Normal                       |
+| > 0.5            | Clinical review for Glaucoma |
+
+---
+
+### Example Workflow
+
+1. Go to [http://localhost:3000](http://localhost:3000)
+2. Click on **“Glaucoma Detection”**
+3. Upload a retinal image
+4. Click **“Start Analysis”**
+5. View:
+ - Segmentation mask
+ - CDR ratio
+ - Final classification result
+
+---
+
+### API Support for Glaucoma Detection
+
+**Endpoint:**
+
+**Payload:**
+
+- `file`: Image file  
+- `model_type`: `"glaucoma"`
+
+**Response Format:**
+
+```json
+{
+  "status": "success",
+  "predicted_class": "Glaucoma Detected",
+  "cdr": 0.65,
+  "mask": "<base64_encoded_mask>"
+}
+```
+
+### Model Details
+
+| Model        | Framework | Type           | Description                                        |
+|--------------|-----------|----------------|----------------------------------------------------|
+| U-Net        | PyTorch   | Segmentation   | Identifies optic disc and cup structures in the retina |
+| DenseNet201  | PyTorch   | Classification | Receives ROI and CDR for glaucoma prediction       |
+
+---
+
+### Expected Results
+
+- For clear fundus images, it is expected to correctly detect Glaucoma.
+- Segmentation mask is available to improve interpretability regarding ROI and CDR.
+
+---
+
+## 📞 Support
+
+For support, please open an issue on GitHub or contact the development team.
+
+---
+
+**Note**: This application is for research and educational purposes. Medical decisions should always be made by qualified healthcare professionals.
+
+Read file: frontend/README.md
+Read file: backend/README.md
+Read file: backend/requirements.txt
+Read file: frontend/package.json
+Read file: backend/models/myopia_model.py
+Here is a sample README file for the **Myopia Detection** module, covering setup, libraries, API, and troubleshooting:
+
+---
