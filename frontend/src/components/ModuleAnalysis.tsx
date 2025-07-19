@@ -300,7 +300,7 @@ const ModuleAnalysis: React.FC<ModuleAnalysisProps> = ({
               {/* Confidence or CDR */}
               {analysisResult?.moduleId === 'glaucoma_detection' ? (
               <div className="space-y-2 text-center">
-                <p className="text-sm text-gray-600">CDR Ratio [0.1 – 0.5]</p>
+                <p className="text-sm text-gray-600">CDR Ratio [Normal: 0.1 – 0.5]</p>
                 <p className="text-lg font-semibold text-blue-600">
                   {analysisResult.cdr !== undefined ? analysisResult.cdr.toFixed(3) : 'N/A'}
                 </p>
