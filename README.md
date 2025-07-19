@@ -688,9 +688,9 @@ The Glaucoma Detection module combines a **U-Net-based segmentation model** with
 To enable glaucoma segmentation and classification:
 
 1. **Download the model files** from the following Google Drive folder:  
-📎 **Download Glaucoma Models**
+📎 **[Download Glaucoma Models](https://drive.google.com/drive/folders/1ZylLiKxY_Q6z4s3US_jChi_6Lwglf_vQ)**
 
-2. **Place the models** in the following directory inside your backend:
+3. **Place the models** in the following directory inside your backend:
 
 ```
 backend/
@@ -773,6 +773,7 @@ CDR = Cup Area / Disc Area
   "mask": "<base64_encoded_mask>"
 }
 ```
+---
 
 ### Model Details
 
